@@ -38,3 +38,30 @@
     transform: rotate(360deg);
   }
 }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .chat-container {
+    flex-direction: column;
+  }
+
+  .chat-container .sidebar {
+    width: 100%;
+    min-width: 100%;
+    height: 100vh;
+  }
+
+  /* When a chat is selected on mobile, hide sidebar and show chat full-screen */
+  .chat-container.chat-open .sidebar {
+    display: none;
+  }
+
+  .chat-container.chat-open .chat-window {
+    width: 100%;
+  }
+
+  /* When no chat is selected, hide the chat window */
+  .chat-container:not(.chat-open) .chat-window {
+    display: none;
+  }
+}

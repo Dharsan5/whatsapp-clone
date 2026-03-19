@@ -36,6 +36,21 @@ const initSocket = (server) => {
       }
     });
 
+    // Typing indicators — forward to the receiver
+    socket.on("typing", ({ senderId, receiverId }) => {
+      const receiverSocketId = onlineUsers.get(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("user_typing", { userId: senderId });
+      }
+    });
+
+    socket.on("stop_typing", ({ senderId, receiverId }) => {
+      const receiverSocketId = onlineUsers.get(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("user_stop_typing", { userId: senderId });
+      }
+    });
+
     // When a user disconnects (closes browser/tab)
     socket.on("disconnect", () => {
       // Find and remove the disconnected user from onlineUsers

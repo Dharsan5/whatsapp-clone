@@ -79,4 +79,56 @@ const getMessages = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, getMessages };
+// @desc    Get last message for each conversation
+// @route   GET /api/messages/last-messages
+// @access  Private
+const getLastMessages = async (req, res) => {
+  try {
+    const myId = req.user.id;
+
+    // Aggregation pipeline — groups messages by conversation and picks the latest
+    const lastMessages = await Message.aggregate([
+      {
+        // Find all messages where I'm either sender or receiver
+        $match: {
+          $or: [
+            { sender: req.user._id },
+            { receiver: req.user._id },
+          ],
+        },
+      },
+      {
+        // Sort by newest first
+        $sort: { createdAt: -1 },
+      },
+      {
+        // Group by conversation partner and pick the first (newest) message
+        $group: {
+          _id: {
+            $cond: [
+              { $eq: ["$sender", req.user._id] },
+              "$receiver",
+              "$sender",
+            ],
+          },
+          lastMessage: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$lastMessage" },
+      },
+    ]);
+
+    // Populate sender and receiver info
+    const populated = await Message.populate(lastMessages, [
+      { path: "sender", select: "username avatar" },
+      { path: "receiver", select: "username avatar" },
+    ]);
+
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { sendMessage, getMessages, getLastMessages };

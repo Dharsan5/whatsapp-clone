@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -11,11 +11,19 @@ const Chat = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState([]);          // All other users
-  const [selectedUser, setSelectedUser] = useState(null); // Currently chatting with
-  const [messages, setMessages] = useState([]);    // Messages in current chat
-  const [onlineUsers, setOnlineUsers] = useState([]); // Who is online
-  const socketRef = useRef(null);                  // Socket.IO connection reference
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [lastMessages, setLastMessages] = useState({});  // { userId: { content, createdAt } }
+  const [typingUsers, setTypingUsers] = useState([]);     // [userId, userId, ...]
+  const socketRef = useRef(null);
+  const selectedUserRef = useRef(null); // Track selected user for socket callbacks
+
+  // Keep ref in sync with state (so socket callbacks see latest value)
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -24,35 +32,50 @@ const Chat = () => {
     }
   }, [user, loading, navigate]);
 
-  // Initialize Socket.IO connection when user logs in
+  // Initialize Socket.IO
   useEffect(() => {
     if (!user) return;
 
-    // Connect to the backend Socket.IO server
     socketRef.current = io("http://localhost:5000");
-
-    // Tell the server "I'm online" by sending my user ID
     socketRef.current.emit("user_online", user._id);
 
-    // Listen for online users updates
-    socketRef.current.on("online_users", (users) => {
-      setOnlineUsers(users);
+    socketRef.current.on("online_users", (onUsers) => {
+      setOnlineUsers(onUsers);
     });
 
-    // Listen for incoming messages from other users
+    // Incoming message handler
     socketRef.current.on("receive_message", (message) => {
-      // Only add the message if it's from the user we're currently chatting with
-      // (we use a callback form of setState to access the latest selectedUser)
-      setMessages((prev) => [...prev, message]);
+      const senderId = message.sender._id;
+
+      // Update last message preview for this sender
+      setLastMessages((prev) => ({
+        ...prev,
+        [senderId]: { content: message.content, createdAt: message.createdAt },
+      }));
+
+      // Only add to chat window if we're currently chatting with this sender
+      if (selectedUserRef.current?._id === senderId) {
+        setMessages((prev) => [...prev, message]);
+      }
     });
 
-    // Cleanup — disconnect socket when component unmounts (logout, page close)
+    // Typing indicator
+    socketRef.current.on("user_typing", ({ userId }) => {
+      setTypingUsers((prev) =>
+        prev.includes(userId) ? prev : [...prev, userId]
+      );
+    });
+
+    socketRef.current.on("user_stop_typing", ({ userId }) => {
+      setTypingUsers((prev) => prev.filter((id) => id !== userId));
+    });
+
     return () => {
       socketRef.current?.disconnect();
     };
   }, [user]);
 
-  // Fetch all users on mount
+  // Fetch all users
   useEffect(() => {
     if (!user) return;
 
@@ -67,6 +90,33 @@ const Chat = () => {
 
     fetchUsers();
   }, [user]);
+
+  // Fetch last messages for all users (for sidebar preview)
+  useEffect(() => {
+    if (!user || users.length === 0) return;
+
+    const fetchLastMessages = async () => {
+      try {
+        const res = await api.get("/messages/last-messages");
+        const mapped = {};
+        res.data.forEach((msg) => {
+          // Figure out the OTHER user's ID
+          const otherUserId =
+            msg.sender._id === user._id ? msg.receiver._id : msg.sender._id;
+          mapped[otherUserId] = {
+            content: msg.content,
+            createdAt: msg.createdAt,
+            isMine: msg.sender._id === user._id,
+          };
+        });
+        setLastMessages(mapped);
+      } catch (err) {
+        console.error("Failed to fetch last messages:", err);
+      }
+    };
+
+    fetchLastMessages();
+  }, [user, users]);
 
   // Fetch messages when a user is selected
   useEffect(() => {
@@ -84,10 +134,22 @@ const Chat = () => {
     fetchMessages();
   }, [selectedUser]);
 
-  // Handle selecting a user from the sidebar
   const handleSelectUser = (u) => {
     setSelectedUser(u);
   };
+
+  // Called when a message is sent — updates sidebar last message preview
+  const handleMessageSent = useCallback((message) => {
+    const receiverId = message.receiver._id;
+    setLastMessages((prev) => ({
+      ...prev,
+      [receiverId]: {
+        content: message.content,
+        createdAt: message.createdAt,
+        isMine: true,
+      },
+    }));
+  }, []);
 
   if (loading) {
     return (
@@ -101,18 +163,23 @@ const Chat = () => {
 
   return (
     <div className="chat-page">
-      <div className="chat-container">
+      <div className={`chat-container ${selectedUser ? "chat-open" : ""}`}>
         <Sidebar
           users={users}
           selectedUser={selectedUser}
           onSelectUser={handleSelectUser}
           onlineUsers={onlineUsers}
+          lastMessages={lastMessages}
+          typingUsers={typingUsers}
         />
         <ChatWindow
           selectedUser={selectedUser}
           messages={messages}
           setMessages={setMessages}
           socket={socketRef.current}
+          onMessageSent={handleMessageSent}
+          typingUsers={typingUsers}
+          onBack={() => setSelectedUser(null)}
         />
       </div>
     </div>

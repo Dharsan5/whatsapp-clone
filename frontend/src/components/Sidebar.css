@@ -111,6 +111,18 @@
   color: white;
   font-size: 20px;
   font-weight: 500;
+  position: relative;
+}
+
+.online-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background-color: #00a884;
+  border-radius: 50%;
+  border: 2px solid #111b21;
 }
 
 .chat-info {
@@ -120,22 +132,48 @@
   padding-bottom: 12px;
 }
 
-.chat-name {
-  color: #e9edef;
-  font-size: 16px;
+.chat-info-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
 }
 
-.chat-status {
-  font-size: 13px;
+.chat-name {
+  color: #e9edef;
+  font-size: 16px;
 }
 
-.online-status {
-  color: #00a884;
-}
-
-.offline-status {
+.chat-time {
   color: #8696a0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.chat-preview {
+  font-size: 13px;
+  color: #8696a0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-message {
+  color: #8696a0;
+}
+
+.you-prefix {
+  color: #8696a0;
+}
+
+.no-message {
+  color: #667781;
+  font-style: italic;
+}
+
+.typing-text {
+  color: #00a884;
+  font-style: italic;
 }
 
 .no-users {

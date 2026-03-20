@@ -11,61 +11,63 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page refresh on form submit
+    e.preventDefault();
     setError("");
 
     try {
       await login(email, password);
-      navigate("/chat"); // Redirect to chat page after successful login
+      navigate("/chat");
     } catch (err) {
-      // Show error message from backend, or a generic one
       setError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err.response?.data?.message ||
+          err.response?.data?.errors?.[0]?.msg ||
+          "Login failed. Please try again."
       );
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <div className="auth-header">
+    <div className="auth-page">
+      <div className="auth-header-bar">
+        <div className="auth-header-content">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
             alt="WhatsApp"
-            className="auth-logo"
+            className="auth-header-logo"
           />
-          <h1>WhatsApp</h1>
+          <span>WHATSAPP WEB</span>
         </div>
-        <h2>Login</h2>
-        {error && <div className="auth-error">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          <button type="submit" className="auth-btn">
-            Login
-          </button>
-        </form>
-        <p className="auth-link">
-          Don't have an account? <Link to="/register">Register</Link>
-        </p>
+      </div>
+
+      <div className="auth-dialog">
+        <div className="auth-dialog-center">
+          <h2>Login to WhatsApp</h2>
+          {error && <div className="auth-error">{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+              />
+            </div>
+            <button type="submit" className="auth-btn">
+              Login
+            </button>
+          </form>
+          <p className="auth-link">
+            Don't have an account? <Link to="/register">Register</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

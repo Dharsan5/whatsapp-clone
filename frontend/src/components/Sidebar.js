@@ -1,4 +1,5 @@
 import { useAuth } from "../context/AuthContext";
+import { emptyProfilePicture } from "../utils/constants";
 import "./Sidebar.css";
 
 const Sidebar = ({
@@ -78,7 +79,7 @@ const Sidebar = ({
               onClick={() => onSelectUser(u)}
             >
               <div className="chat-avatar">
-                {u.username.charAt(0).toUpperCase()}
+                <img src={emptyProfilePicture} alt={u.username} className="chat-avatar-img" />
                 {onlineUsers.includes(u._id) && (
                   <span className="online-dot"></span>
                 )}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { emptyChatImage, emptyProfilePicture } from "../utils/constants";
 import "./ChatWindow.css";
 
 const ChatWindow = ({
@@ -121,12 +122,13 @@ const ChatWindow = ({
       <div className="chat-window empty">
         <div className="empty-chat">
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            src={emptyChatImage}
             alt="WhatsApp"
             className="empty-logo"
           />
           <h2>WhatsApp Web</h2>
-          <p>Select a user to start chatting</p>
+          <p>Send and receive messages without keeping your phone online.</p>
+          <p className="empty-subtitle">Use WhatsApp on up to 4 linked devices and 1 phone at the same time.</p>
         </div>
       </div>
     );
@@ -146,9 +148,11 @@ const ChatWindow = ({
             ←
           </button>
         )}
-        <div className="chat-header-avatar">
-          {selectedUser.username.charAt(0).toUpperCase()}
-        </div>
+        <img
+          src={emptyProfilePicture}
+          alt={selectedUser.username}
+          className="chat-header-avatar-img"
+        />
         <div className="chat-header-info">
           <div className="chat-header-name">{selectedUser.username}</div>
           {isTyping && (

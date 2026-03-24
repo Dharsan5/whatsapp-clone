@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import api from "../services/api";
+import NavSidebar from "../components/NavSidebar";
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
 import "./Chat.css";
@@ -164,6 +165,7 @@ const Chat = () => {
   return (
     <div className="chat-page">
       <div className={`chat-container ${selectedUser ? "chat-open" : ""}`}>
+        <NavSidebar />
         <Sidebar
           users={users}
           selectedUser={selectedUser}

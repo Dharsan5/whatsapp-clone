@@ -24,21 +24,18 @@ const ChatWindow = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle typing indicator — emit events as user types
+  // Handle typing indicator
   const handleInputChange = useCallback(
     (e) => {
       setNewMessage(e.target.value);
 
       if (!socket || !selectedUser) return;
 
-      // Emit "typing" event
       socket.emit("typing", {
         senderId: user._id,
         receiverId: selectedUser._id,
       });
 
-      // Clear previous timeout and set a new one
-      // After 2 seconds of no typing → emit "stop_typing"
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -59,7 +56,6 @@ const ChatWindow = ({
 
     setSending(true);
 
-    // Stop typing indicator immediately on send
     if (socket && selectedUser) {
       socket.emit("stop_typing", {
         senderId: user._id,
@@ -79,7 +75,6 @@ const ChatWindow = ({
         socket.emit("send_message", res.data);
       }
 
-      // Update sidebar last message preview
       if (onMessageSent) {
         onMessageSent(res.data);
       }
@@ -92,15 +87,14 @@ const ChatWindow = ({
     }
   };
 
-  // Format timestamp — "2:30 PM"
+  // Format timestamp
   const formatTime = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const hours = new Date(dateStr).getHours();
+    const minutes = new Date(dateStr).getMinutes();
+    return `${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}`;
   };
 
-  // Group messages by date for date separators
+  // Date label for separators
   const getDateLabel = (dateStr) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -116,27 +110,24 @@ const ChatWindow = ({
     });
   };
 
-  // If no user is selected, show a welcome screen
+  // Empty state
   if (!selectedUser) {
     return (
       <div className="chat-window empty">
         <div className="empty-chat">
-          <img
-            src={emptyChatImage}
-            alt="WhatsApp"
-            className="empty-logo"
-          />
+          <img src={emptyChatImage} alt="WhatsApp" className="empty-logo" />
           <h2>WhatsApp Web</h2>
-          <p>Send and receive messages without keeping your phone online.</p>
-          <p className="empty-subtitle">Use WhatsApp on up to 4 linked devices and 1 phone at the same time.</p>
+          <p>Now send and receive messages without keeping your phone online.</p>
+          <p className="empty-subtitle">
+            Use WhatsApp on up to 4 linked devices and 1 phone at the same time.
+          </p>
+          <hr className="empty-divider" />
         </div>
       </div>
     );
   }
 
   const isTyping = typingUsers?.includes(selectedUser._id);
-
-  // Build messages with date separators
   let lastDateLabel = "";
 
   return (
@@ -155,9 +146,17 @@ const ChatWindow = ({
         />
         <div className="chat-header-info">
           <div className="chat-header-name">{selectedUser.username}</div>
-          {isTyping && (
+          {isTyping ? (
             <div className="chat-header-typing">typing...</div>
+          ) : (
+            <div className="chat-header-status">
+              {typingUsers ? "Online" : "Offline"}
+            </div>
           )}
+        </div>
+        <div className="chat-header-icons">
+          <span>&#128269;</span>
+          <span>&#8942;</span>
         </div>
       </div>
 
@@ -193,17 +192,23 @@ const ChatWindow = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message input */}
+      {/* Footer / Message input */}
       <form className="message-input-container" onSubmit={handleSend}>
-        <input
-          type="text"
-          value={newMessage}
-          onChange={handleInputChange}
-          placeholder="Type a message"
-          className="message-input"
-          disabled={sending}
-        />
-        <button type="submit" className="send-btn" disabled={sending}>
+        <div className="input-icons">
+          <span title="Emoji">&#128578;</span>
+          <span title="Attach">&#128206;</span>
+        </div>
+        <div className="message-input-wrapper">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={handleInputChange}
+            placeholder="Type a message"
+            className="message-input"
+            disabled={sending}
+          />
+        </div>
+        <button type="submit" className="send-btn" disabled={sending} title="Send">
           ➤
         </button>
       </form>

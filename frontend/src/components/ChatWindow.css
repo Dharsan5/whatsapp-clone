@@ -112,14 +112,31 @@
 /* Messages Area */
 .messages-container {
   flex: 1;
-  background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-  background-repeat: repeat;
-  background-color: #0b141a;
+  background-color: #0b141a; /* Base dark color */
   padding: 20px 5%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  position: relative; /* For pseudo-element */
+}
+
+.messages-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url('../assets/BG/bg-whatsapp.png');
+  background-repeat: repeat;
+  background-size: 400px;
+  opacity: 0.06; /* Reduced opacity for doodle */
+  pointer-events: none; /* Let clicks pass through to messages */
+  z-index: 0;
+}
+
+/* Ensure messages stay above background */
+.message, .date-separator {
+  position: relative;
+  z-index: 1;
 }
 
 .date-separator {

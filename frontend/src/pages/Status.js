@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FiPlus, FiMoreVertical, FiLock } from "react-icons/fi";
 import api from "../services/api";
 import NavSidebar from "../components/NavSidebar";
-import { emptyProfilePicture } from "../utils/constants";
+import DefaultAvatar from "../components/DefaultAvatar";
 import "./Status.css";
 
 const Status = () => {
@@ -87,11 +87,7 @@ const Status = () => {
             onClick={() => setSelectedStatus("my")}
           >
             <div className="status-avatar-wrapper my-status-avatar">
-              <img
-                src={emptyProfilePicture}
-                alt="My status"
-                className="status-avatar-img"
-              />
+              <DefaultAvatar name={user?.username} size={50} />
               <span className="status-add-badge">
                 <FiPlus size={12} />
               </span>
@@ -114,11 +110,7 @@ const Status = () => {
                 >
                   <div className="status-avatar-wrapper">
                     <div className="status-ring">
-                      <img
-                        src={emptyProfilePicture}
-                        alt={u.username}
-                        className="status-avatar-img"
-                      />
+                      <DefaultAvatar name={u.username} size={44} />
                     </div>
                   </div>
                   <div className="status-info">
@@ -142,11 +134,7 @@ const Status = () => {
                 >
                   <div className="status-avatar-wrapper">
                     <div className="status-ring viewed">
-                      <img
-                        src={emptyProfilePicture}
-                        alt={u.username}
-                        className="status-avatar-img"
-                      />
+                      <DefaultAvatar name={u.username} size={44} />
                     </div>
                   </div>
                   <div className="status-info">

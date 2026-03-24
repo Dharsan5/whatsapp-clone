@@ -1,4 +1,4 @@
-import { emptyProfilePicture } from "../utils/constants";
+import DefaultAvatar from "./DefaultAvatar";
 import "./Sidebar.css";
 
 const Sidebar = ({
@@ -98,11 +98,7 @@ const Sidebar = ({
               onClick={() => onSelectUser(u)}
             >
               <div className="chat-avatar">
-                <img
-                  src={emptyProfilePicture}
-                  alt={u.username}
-                  className="chat-avatar-img"
-                />
+                <DefaultAvatar name={u.username} size={50} />
                 {onlineUsers.includes(u._id) && (
                   <span className="online-dot"></span>
                 )}

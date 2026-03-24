@@ -1,5 +1,6 @@
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
+import DefaultAvatar from "./DefaultAvatar";
 import "./NavSidebar.css";
 
 const NavSidebar = ({ activePage }) => {
@@ -50,9 +51,7 @@ const NavSidebar = ({ activePage }) => {
           </svg>
         </div>
         <div className="nav-icon nav-profile" title={user?.username}>
-          <div className="nav-profile-avatar">
-            {user?.username?.charAt(0).toUpperCase()}
-          </div>
+          <DefaultAvatar name={user?.username} size={32} />
         </div>
       </div>
     </div>

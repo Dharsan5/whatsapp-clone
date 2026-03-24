@@ -77,11 +77,8 @@
   position: relative;
 }
 
-.status-avatar-img {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  object-fit: cover;
+.status-avatar-wrapper .default-avatar {
+  border: none;
 }
 
 /* Status ring (green border for unseen) */
@@ -96,9 +93,7 @@
   justify-content: center;
 }
 
-.status-ring .status-avatar-img {
-  width: 44px;
-  height: 44px;
+.status-ring .default-avatar {
   border: 2px solid #111b21;
 }
 

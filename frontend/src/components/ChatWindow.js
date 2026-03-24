@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { FiSmile, FiArrowLeft, FiSearch, FiMoreVertical, FiPaperclip, FiSend } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import { emptyChatImage, emptyProfilePicture } from "../utils/constants";
+import { emptyChatImage } from "../utils/constants";
+import DefaultAvatar from "./DefaultAvatar";
 import "./ChatWindow.css";
 
 const ChatWindow = ({
@@ -140,11 +141,7 @@ const ChatWindow = ({
             <FiArrowLeft size={22} />
           </button>
         )}
-        <img
-          src={emptyProfilePicture}
-          alt={selectedUser.username}
-          className="chat-header-avatar-img"
-        />
+        <DefaultAvatar name={selectedUser.username} size={40} />
         <div className="chat-header-info">
           <div className="chat-header-name">{selectedUser.username}</div>
           {isTyping ? (

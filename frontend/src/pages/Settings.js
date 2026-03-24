@@ -6,7 +6,7 @@ import {
   FiCamera, FiEdit2, FiCheck, FiMoon, FiImage, FiSettings, FiKeyboard
 } from "react-icons/fi";
 import NavSidebar from "../components/NavSidebar";
-import DefaultAvatar from "./DefaultAvatar";
+import DefaultAvatar from "../components/DefaultAvatar";
 import MediaModal from "../components/MediaModal";
 import "./Settings.css";
 

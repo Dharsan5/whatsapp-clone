@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { FiMail, FiLock, FiLogIn, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUser, FiLock, FiLogIn, FiEye, FiEyeOff } from "react-icons/fi";
 import "./Auth.css";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [loginIdentifier, setLoginIdentifier] = useState(""); // Email or Phone
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,14 +17,11 @@ const Login = () => {
     setError("");
 
     try {
-      await login(email, password);
-      navigate("/chat");
+      const user = await login(loginIdentifier, password);
+      if (!user.isOnboarded) navigate("/onboarding");
+      else navigate("/chat");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data?.errors?.[0]?.msg ||
-          "Login failed. Please try again."
-      );
+      setError(err.response?.data?.message || "Login failed. Check your credentials.");
     }
   };
 
@@ -43,16 +40,17 @@ const Login = () => {
       <div className="auth-dialog">
         <div className="auth-dialog-center">
           <h2>Login to WhatsApp</h2>
-          {error && <div className="auth-error"><span className="auth-error-icon">!</span>{error}</div>}
+          {error && <div className="auth-error-visible">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <div className="input-with-icon">
-                <FiMail className="field-icon" size={18} />
+                <FiUser className="field-icon" size={18} />
                 <input
                   type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
+                  value={loginIdentifier}
+                  onChange={(e) => setLoginIdentifier(e.target.value)}
+                  placeholder="Email or Phone Number"
+                  required
                 />
               </div>
             </div>
@@ -64,12 +62,12 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
+                  required
                 />
                 <button
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
                 >
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>

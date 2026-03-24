@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Username is required"],
-      unique: true,       // No two users can have the same username
-      trim: true,          // Removes extra spaces like "  john  " → "john"
+      unique: true,
+      trim: true,
       minlength: [3, "Username must be at least 3 characters"],
     },
     email: {
@@ -14,20 +14,37 @@ const userSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       trim: true,
-      lowercase: true,     // "John@Gmail.com" → "john@gmail.com"
+      lowercase: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
     },
     password: {
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
     },
-    avatar: {
+    fullName: {
       type: String,
-      default: "",         // Optional profile picture URL
+      default: "",
+    },
+    about: {
+      type: String,
+      default: "Hey there! I am using WhatsApp.",
+    },
+    avatar: {
+      type: String, // Cloudinary URL
+      default: "",
+    },
+    isOnboarded: {
+      type: Boolean,
+      default: false,
     },
   },
   {
-    timestamps: true,      // Automatically adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 

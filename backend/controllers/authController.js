@@ -4,8 +4,6 @@ const { validationResult } = require("express-validator");
 const User = require("../models/User");
 
 // Generate JWT token
-// JWT = JSON Web Token — a string that proves "this user is logged in"
-// It contains the user's ID and expires after 7 days
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: "7d",
@@ -13,50 +11,46 @@ const generateToken = (userId) => {
 };
 
 // @desc    Register a new user
-// @route   POST /api/auth/register
 const register = async (req, res) => {
   try {
-    // Check for validation errors from express-validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { username, email, password } = req.body;
+    const { username, email, phoneNumber, password } = req.body;
 
-    // Check if user already exists (by email or username)
+    // Check if user already exists
     const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
+      $or: [{ email }, { username }, { phoneNumber }],
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        message:
-          existingUser.email === email
-            ? "Email already registered"
-            : "Username already taken",
-      });
+      let field = "Account";
+      if (existingUser.email === email) field = "Email";
+      else if (existingUser.username === username) field = "Username";
+      else if (existingUser.phoneNumber === phoneNumber) field = "Phone number";
+      
+      return res.status(400).json({ message: `${field} already registered` });
     }
 
-    // Hash the password — NEVER store plain text passwords
-    // bcrypt adds random "salt" and scrambles the password
-    // "password123" → "$2a$10$X7jK..." (impossible to reverse)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create the user in database
     const user = await User.create({
       username,
       email,
+      phoneNumber,
       password: hashedPassword,
     });
 
-    // Send back user info + token (so they're immediately logged in)
     res.status(201).json({
       _id: user._id,
       username: user.username,
       email: user.email,
+      phoneNumber: user.phoneNumber,
       avatar: user.avatar,
+      isOnboarded: user.isOnboarded,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -65,35 +59,31 @@ const register = async (req, res) => {
 };
 
 // @desc    Login user
-// @route   POST /api/auth/login
 const login = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    const { loginIdentifier, password } = req.body; // Can be email or phone
 
-    const { email, password } = req.body;
+    // Find user by email OR phone number
+    const user = await User.findOne({
+      $or: [{ email: loginIdentifier }, { phoneNumber: loginIdentifier }],
+    });
 
-    // Find user by email
-    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare entered password with stored hashed password
-    // bcrypt.compare("password123", "$2a$10$X7jK...") → true/false
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Send back user info + new token
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
+      phoneNumber: user.phoneNumber,
       avatar: user.avatar,
+      isOnboarded: user.isOnboarded,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -101,4 +91,31 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// @desc    Update user profile (Onboarding)
+const updateProfile = async (req, res) => {
+  try {
+    const { fullName, about } = req.body;
+    const userId = req.user.id;
+
+    let avatarUrl = "";
+    if (req.file) {
+      avatarUrl = req.file.path; // Cloudinary URL
+    }
+
+    const updateData = {
+      fullName: fullName || "",
+      about: about || "Hey there! I am using WhatsApp.",
+      isOnboarded: true,
+    };
+
+    if (avatarUrl) updateData.avatar = avatarUrl;
+
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true }).select("-password");
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update profile", error: error.message });
+  }
+};
+
+module.exports = { register, login, updateProfile };

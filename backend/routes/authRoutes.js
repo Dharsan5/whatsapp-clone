@@ -1,25 +1,19 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { register, login } = require("../controllers/authController");
+const { register, login, updateProfile } = require("../controllers/authController");
+const auth = require("../middleware/auth");
+const { upload } = require("../config/cloudinary");
 
 const router = express.Router();
 
 // POST /api/auth/register
-// body() validators run BEFORE the controller — they check input
 router.post(
   "/register",
   [
-    body("username")
-      .trim()
-      .isLength({ min: 3 })
-      .withMessage("Username must be at least 3 characters"),
-    body("email")
-      .trim()
-      .isEmail()
-      .withMessage("Please enter a valid email"),
-    body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters"),
+    body("username").trim().isLength({ min: 3 }),
+    body("email").trim().isEmail(),
+    body("phoneNumber").trim().notEmpty().withMessage("Phone number is required"),
+    body("password").isLength({ min: 6 }),
   ],
   register
 );
@@ -28,15 +22,13 @@ router.post(
 router.post(
   "/login",
   [
-    body("email")
-      .trim()
-      .isEmail()
-      .withMessage("Please enter a valid email"),
-    body("password")
-      .notEmpty()
-      .withMessage("Password is required"),
+    body("loginIdentifier").trim().notEmpty().withMessage("Email or Phone is required"),
+    body("password").notEmpty(),
   ],
   login
 );
+
+// PUT /api/auth/profile — Update user profile (Onboarding)
+router.put("/profile", auth, upload.single("avatar"), updateProfile);
 
 module.exports = router;

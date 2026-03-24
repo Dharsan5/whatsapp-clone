@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { FiUser, FiMail, FiLock, FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiPhone, FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
 import "./Auth.css";
 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,14 +19,11 @@ const Register = () => {
     setError("");
 
     try {
-      await register(username, email, password);
-      navigate("/chat");
+      await register(username, email, phoneNumber, password);
+      // Registration successful -> Go to onboarding
+      navigate("/onboarding");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data?.errors?.[0]?.msg ||
-          "Registration failed. Please try again."
-      );
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     }
   };
 
@@ -44,30 +42,11 @@ const Register = () => {
       <div className="auth-dialog">
         <div className="auth-dialog-center">
           <h2>Create your account</h2>
-          {error && <div className="auth-error"><span className="auth-error-icon">!</span>{error}</div>}
+          {error && <div className="auth-error-visible">{error}</div>}
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <div className="input-with-icon">
-                <FiUser className="field-icon" size={18} />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Username"
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <div className="input-with-icon">
-                <FiMail className="field-icon" size={18} />
-                <input
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                />
-              </div>
-            </div>
+            <div className="form-group"><div className="input-with-icon"><FiUser className="field-icon" size={18} /><input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" required /></div></div>
+            <div className="form-group"><div className="input-with-icon"><FiMail className="field-icon" size={18} /><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required /></div></div>
+            <div className="form-group"><div className="input-with-icon"><FiPhone className="field-icon" size={18} /><input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone Number" required /></div></div>
             <div className="form-group">
               <div className="input-with-icon">
                 <FiLock className="field-icon" size={18} />
@@ -76,13 +55,9 @@ const Register = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password (min 6 chars)"
+                  required
                 />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
+                <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>

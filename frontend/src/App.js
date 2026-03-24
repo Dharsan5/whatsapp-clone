@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Chat from "./pages/Chat";
 import Status from "./pages/Status";
+import Onboarding from "./pages/Onboarding";
 import "./App.css";
 
 function App() {
@@ -11,10 +12,10 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Default route — redirect to chat */}
           <Route path="/" element={<Navigate to="/chat" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/status" element={<Status />} />
         </Routes>

@@ -1,124 +1,109 @@
-/* Full page layout */
+/* Full page layout - Dark Theme */
 .auth-page {
   min-height: 100vh;
-  background-color: #dcdcdc;
+  background-color: #0b141a; /* Darkest background */
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Green header bar */
+/* Green header bar - Minimalist like WhatsApp Web */
 .auth-header-bar {
   background-color: #00a884;
   height: 222px;
   width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .auth-header-content {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 30px;
+  items-center: center;
+  gap: 14px;
+  padding: 24px 10%;
   color: white;
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.8px;
-}
-
-.auth-header-logo {
-  width: 26px;
-  height: 26px;
-  filter: brightness(0) invert(1);
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 10;
 }
 
 .auth-header-logo-svg {
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-/* Dialog card */
+/* Dialog card - Dark Mode */
 .auth-dialog {
-  position: absolute;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  margin: 100px auto 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: #111b21; /* WhatsApp Dialog Dark */
   width: 90%;
   max-width: 500px;
-  min-height: 420px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
-  padding: 50px 48px;
+  min-height: 480px;
+  box-shadow: 0 17px 50px 0 rgba(0, 0, 0, 0.19), 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+  padding: 50px 60px;
   box-sizing: border-box;
   border-radius: 4px;
-  animation: fadeSlideUp 0.4s ease-out;
+  z-index: 5;
+  animation: authFadeIn 0.5s ease-out;
 }
 
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Centered content */
 .auth-dialog-center {
   width: 100%;
 }
 
 .auth-dialog-center h2 {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 300;
-  color: #41525d;
-  margin: 0 0 30px 0;
+  color: #e9edef; /* Light text */
+  margin: 0 0 32px 0;
   text-align: center;
-  font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
 }
 
 /* Error message */
-.auth-error {
-  background-color: #ea0038;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 6px;
-  margin-bottom: 14px;
+.auth-error-visible {
+  background-color: rgba(234, 0, 56, 0.1);
+  border-left: 4px solid #ea0038;
+  color: #ef5350;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 24px;
   font-size: 14px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  animation: shakeError 0.35s ease;
-}
-
-.auth-error-icon {
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 12px;
-  flex-shrink: 0;
+  text-align: left;
+  animation: shakeError 0.4s ease;
 }
 
 @keyframes shakeError {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
 /* Form groups */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.field-label {
+  display: block;
+  text-align: left;
+  font-size: 14px;
+  color: #8696a0; /* Gray text */
+  margin-bottom: 8px;
 }
 
 /* Input with icon wrapper */
@@ -130,7 +115,7 @@
 
 .field-icon {
   position: absolute;
-  left: 14px;
+  left: 0;
   color: #8696a0;
   pointer-events: none;
   transition: color 0.2s;
@@ -139,120 +124,194 @@
 
 .input-with-icon input {
   width: 100%;
-  padding: 13px 14px 13px 44px;
+  padding: 10px 0 10px 36px;
   border: none;
-  border-bottom: 2px solid #4adf83;
-  background-color: #edf7f2;
-  color: #3b4a54;
-  font-size: 15px;
+  border-bottom: 1.5px solid #2a3942; /* Subtle divider */
+  background-color: transparent;
+  color: #d1d7db; /* Input text light */
+  font-size: 16px;
   outline: none;
-  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.3s;
   box-sizing: border-box;
 }
 
 .input-with-icon input:focus {
-  border-bottom-color: #00a884;
-  background-color: #e0f5ea;
-  box-shadow: 0 2px 8px rgba(0, 168, 132, 0.08);
+  border-bottom-color: #00a884; /* WhatsApp Green */
 }
 
-.input-with-icon input:focus ~ .field-icon,
-.input-with-icon input:focus + .field-icon {
-  color: #00a884;
-}
-
-/* Adjust: icon color on focus by using focus-within */
-.input-with-icon:focus-within .field-icon {
+.input-with-icon input:focus ~ .field-icon {
   color: #00a884;
 }
 
 .input-with-icon input::placeholder {
-  color: #9a9a9a;
+  color: #667781;
+  font-size: 15px;
 }
 
 /* Password toggle */
 .password-toggle {
   position: absolute;
-  right: 10px;
+  right: 0;
   background: none;
   border: none;
   color: #8696a0;
   cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: color 0.2s, background-color 0.2s;
+  padding: 8px;
 }
 
 .password-toggle:hover {
-  color: #00a884;
-  background-color: rgba(0, 168, 132, 0.08);
+  color: #d1d7db;
 }
 
 /* Auth button */
 .auth-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background-color: #00a884;
-  color: white;
+  color: #111b21; /* Dark text on green button */
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-  margin-top: 10px;
+  border-radius: 3px;
+  font-size: 14px;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .auth-btn:hover {
   background-color: #06cf9c;
-  box-shadow: 0 4px 12px rgba(0, 168, 132, 0.25);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .auth-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 
 /* Link text */
 .auth-link {
   text-align: center;
-  color: #667781;
-  margin-top: 18px;
+  color: #8696a0;
+  margin-top: 28px;
   font-size: 14px;
 }
 
 .auth-link a {
-  color: #00a884;
+  color: #53bdeb; /* Link blue from WhatsApp */
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
+  font-weight: 400;
 }
 
 .auth-link a:hover {
-  color: #06cf9c;
   text-decoration: underline;
+}
+
+/* Onboarding Specifics */
+.onboarding-bg {
+  background-color: #0b141a;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-container {
+  background: #111b21;
+  width: 90%;
+  max-width: 500px;
+  padding: 50px 60px;
+  border-radius: 4px;
+  box-shadow: 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+  text-align: center;
+}
+
+.onboarding-header h1 {
+  font-size: 28px;
+  font-weight: 300;
+  color: #e9edef;
+  margin-bottom: 12px;
+}
+
+.onboarding-header p {
+  color: #8696a0;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.avatar-selection {
+  margin: 0 auto 40px;
+  width: 160px;
+  height: 160px;
+  cursor: pointer;
+}
+
+.avatar-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background-color: #202c33;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(11, 20, 26, 0.6);
+  color: #e9edef;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+  gap: 10px;
+}
+
+.avatar-selection:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-preview-img {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.onboarding-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #00a884;
+  color: #111b21;
+  border: none;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-top: 40px;
+}
+
+.onboarding-btn:disabled {
+  background-color: #2a3942;
+  color: #8696a0;
+  cursor: not-allowed;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .auth-header-bar {
-    height: 130px;
-  }
-
-  .auth-dialog {
-    top: 70px;
-    width: 95%;
+  .auth-dialog, .onboarding-container {
     padding: 30px 24px;
-    min-height: auto;
+    margin-top: 60px;
   }
-
-  .auth-dialog-center h2 {
-    font-size: 20px;
+  
+  .auth-header-content {
+    padding: 20px;
   }
 }

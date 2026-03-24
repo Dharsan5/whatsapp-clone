@@ -6,6 +6,7 @@ import api from "../services/api";
 import NavSidebar from "../components/NavSidebar";
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
+import MediaModal from "../components/MediaModal";
 import "./Chat.css";
 
 const Chat = () => {
@@ -18,6 +19,7 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [lastMessages, setLastMessages] = useState({});
   const [typingUsers, setTypingUsers] = useState([]);
+  const [showMediaModal, setShowMediaModal] = useState(false);
   const socketRef = useRef(null);
   const selectedUserRef = useRef(null);
 
@@ -42,39 +44,17 @@ const Chat = () => {
 
   useEffect(() => {
     if (!user) return;
-
     socketRef.current = io("http://localhost:5000");
     socketRef.current.emit("user_online", user._id);
-
     socketRef.current.on("online_users", (onUsers) => setOnlineUsers(onUsers));
-
     socketRef.current.on("receive_message", (message) => {
       const senderId = message.sender._id;
-
-      setLastMessages((prev) => ({
-        ...prev,
-        [senderId]: { 
-          content: getPreviewText(message), 
-          createdAt: message.createdAt 
-        },
-      }));
-
-      if (selectedUserRef.current?._id === senderId) {
-        setMessages((prev) => [...prev, message]);
-      }
+      setLastMessages((prev) => ({ ...prev, [senderId]: { content: getPreviewText(message), createdAt: message.createdAt } }));
+      if (selectedUserRef.current?._id === senderId) setMessages((prev) => [...prev, message]);
     });
-
-    socketRef.current.on("user_typing", ({ userId }) => {
-      setTypingUsers((prev) => prev.includes(userId) ? prev : [...prev, userId]);
-    });
-
-    socketRef.current.on("user_stop_typing", ({ userId }) => {
-      setTypingUsers((prev) => prev.filter((id) => id !== userId));
-    });
-
-    return () => {
-      socketRef.current?.disconnect();
-    };
+    socketRef.current.on("user_typing", ({ userId }) => setTypingUsers((prev) => prev.includes(userId) ? prev : [...prev, userId]));
+    socketRef.current.on("user_stop_typing", ({ userId }) => setTypingUsers((prev) => prev.filter((id) => id !== userId)));
+    return () => socketRef.current?.disconnect();
   }, [user]);
 
   useEffect(() => {
@@ -83,9 +63,7 @@ const Chat = () => {
       try {
         const res = await api.get("/users");
         setUsers(res.data);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-      }
+      } catch (err) { console.error(err); }
     };
     fetchUsers();
   }, [user]);
@@ -98,16 +76,10 @@ const Chat = () => {
         const mapped = {};
         res.data.forEach((msg) => {
           const otherUserId = msg.sender._id === user._id ? msg.receiver._id : msg.sender._id;
-          mapped[otherUserId] = {
-            content: getPreviewText(msg),
-            createdAt: msg.createdAt,
-            isMine: msg.sender._id === user._id,
-          };
+          mapped[otherUserId] = { content: getPreviewText(msg), createdAt: msg.createdAt, isMine: msg.sender._id === user._id };
         });
         setLastMessages(mapped);
-      } catch (err) {
-        console.error("Failed to fetch last messages:", err);
-      }
+      } catch (err) { console.error(err); }
     };
     fetchLastMessages();
   }, [user, users]);
@@ -118,55 +90,28 @@ const Chat = () => {
       try {
         const res = await api.get(`/messages/${selectedUser._id}`);
         setMessages(res.data);
-      } catch (err) {
-        console.error("Failed to fetch messages:", err);
-      }
+      } catch (err) { console.error(err); }
     };
     fetchMessages();
   }, [selectedUser]);
 
   const handleMessageSent = useCallback((message) => {
     const receiverId = message.receiver._id;
-    setLastMessages((prev) => ({
-      ...prev,
-      [receiverId]: {
-        content: getPreviewText(message),
-        createdAt: message.createdAt,
-        isMine: true,
-      },
-    }));
+    setLastMessages((prev) => ({ ...prev, [receiverId]: { content: getPreviewText(message), createdAt: message.createdAt, isMine: true } }));
   }, []);
 
-  if (loading) return (
-    <div className="loading-screen">
-      <div className="loading-spinner"></div>
-    </div>
-  );
-
+  if (loading) return <div className="loading-screen"><div className="loading-spinner"></div></div>;
   if (!user) return null;
 
   return (
     <div className="chat-page">
       <div className={`chat-container ${selectedUser ? "chat-open" : ""}`}>
-        <NavSidebar />
-        <Sidebar
-          users={users}
-          selectedUser={selectedUser}
-          onSelectUser={(u) => setSelectedUser(u)}
-          onlineUsers={onlineUsers}
-          lastMessages={lastMessages}
-          typingUsers={typingUsers}
-        />
-        <ChatWindow
-          selectedUser={selectedUser}
-          messages={messages}
-          setMessages={setMessages}
-          socket={socketRef.current}
-          onMessageSent={handleMessageSent}
-          typingUsers={typingUsers}
-          onBack={() => setSelectedUser(null)}
-        />
+        <NavSidebar onMediaClick={() => setShowMediaModal(true)} />
+        <Sidebar users={users} selectedUser={selectedUser} onSelectUser={(u) => setSelectedUser(u)} onlineUsers={onlineUsers} lastMessages={lastMessages} typingUsers={typingUsers} />
+        <ChatWindow selectedUser={selectedUser} messages={messages} setMessages={setMessages} socket={socketRef.current} onMessageSent={handleMessageSent} typingUsers={typingUsers} onBack={() => setSelectedUser(null)} />
       </div>
+
+      {showMediaModal && <MediaModal onClose={() => setShowMediaModal(false)} />}
     </div>
   );
 };

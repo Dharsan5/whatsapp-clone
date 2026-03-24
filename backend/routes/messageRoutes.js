@@ -1,10 +1,18 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { sendMessage, getMessages, getLastMessages } = require("../controllers/messageController");
+const { 
+  sendMessage, 
+  getMessages, 
+  getLastMessages,
+  getGlobalMedia 
+} = require("../controllers/messageController");
 const auth = require("../middleware/auth");
 const { upload } = require("../config/cloudinary");
 
 const router = express.Router();
+
+// GET /api/messages/global-media — get all media from all chats
+router.get("/global-media", auth, getGlobalMedia);
 
 // GET /api/messages/last-messages — get last message per conversation
 router.get("/last-messages", auth, getLastMessages);
@@ -13,7 +21,7 @@ router.get("/last-messages", auth, getLastMessages);
 router.post(
   "/",
   auth,
-  upload.single("media"), // Handle single media attachment if present
+  upload.single("media"), 
   [
     body("receiverId").notEmpty().withMessage("Receiver ID is required"),
   ],

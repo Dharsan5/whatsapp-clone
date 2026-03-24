@@ -14,7 +14,7 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: false, // Optional if it's purely media/location
+      required: false,
       trim: true,
     },
     messageType: {
@@ -23,17 +23,23 @@ const messageSchema = new mongoose.Schema(
       default: "text",
     },
     mediaUrl: {
-      type: String, // Cloudinary URL or file link
+      type: String,
       required: false,
     },
     fileName: {
-      type: String, // Original filename for documents
+      type: String,
       required: false,
     },
     location: {
       latitude: Number,
       longitude: Number,
-      label: String, // Optional name for location (e.g., "Starbucks")
+      label: String,
+    },
+    // For Status Replies
+    repliedStatus: {
+      mediaUrl: String,
+      mediaType: String, // "image", "video", "text"
+      caption: String,
     },
   },
   {

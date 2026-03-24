@@ -21,7 +21,7 @@
 
 .auth-header-content {
   display: flex;
-  items-center: center;
+  align-items: center;
   gap: 14px;
   padding: 24px 10%;
   color: white;

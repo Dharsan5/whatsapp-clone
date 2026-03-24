@@ -9,7 +9,6 @@
   overflow-y: auto;
 }
 
-/* Status header */
 .status-sidebar-header {
   display: flex;
   align-items: center;
@@ -48,6 +47,10 @@
   color: #e9edef;
 }
 
+.white-icon {
+  color: #fff !important;
+}
+
 /* Status items */
 .status-item {
   display: flex;
@@ -58,13 +61,8 @@
   gap: 14px;
 }
 
-.status-item:hover {
-  background-color: #202c33;
-}
-
-.status-item.active {
-  background-color: #2a3942;
-}
+.status-item:hover { background-color: #202c33; }
+.status-item.active { background-color: #2a3942; }
 
 /* Status avatar */
 .status-avatar-wrapper {
@@ -77,11 +75,6 @@
   position: relative;
 }
 
-.status-avatar-wrapper .default-avatar {
-  border: none;
-}
-
-/* Status ring (green border for unseen) */
 .status-ring {
   width: 50px;
   height: 50px;
@@ -93,16 +86,8 @@
   justify-content: center;
 }
 
-.status-ring .default-avatar {
-  border: 2px solid #111b21;
-}
+.status-ring .default-avatar { border: 2px solid #111b21; }
 
-/* Viewed ring (gray) */
-.status-ring.viewed {
-  background: conic-gradient(#667781 0deg, #667781 360deg);
-}
-
-/* My status add badge */
 .status-add-badge {
   position: absolute;
   bottom: 0;
@@ -118,7 +103,6 @@
   border: 2px solid #111b21;
 }
 
-/* Status info */
 .status-info {
   flex: 1;
   min-width: 0;
@@ -126,18 +110,9 @@
   padding-bottom: 12px;
 }
 
-.status-name {
-  color: #e9edef;
-  font-size: 16px;
-  margin-bottom: 2px;
-}
+.status-name { color: #e9edef; font-size: 16px; margin-bottom: 2px; }
+.status-time-text { color: #8696a0; font-size: 13px; }
 
-.status-time-text {
-  color: #8696a0;
-  font-size: 13px;
-}
-
-/* Section label */
 .status-section-label {
   color: #00a884;
   font-size: 14px;
@@ -169,82 +144,91 @@
   padding: 0 40px;
 }
 
-.status-detail-icon {
-  margin-bottom: 24px;
-}
+.status-detail-title { color: #e9edef; font-size: 32px; font-weight: 300; margin: 0 0 14px; }
+.status-detail-desc { color: #8696a0; font-size: 14px; line-height: 1.6; margin: 0 0 32px; }
 
-.status-detail-title {
-  color: #e9edef;
-  font-size: 32px;
-  font-weight: 300;
-  margin: 0 0 14px;
-  font-family: inherit;
-}
-
-.status-detail-desc {
-  color: #8696a0;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0 0 32px;
-}
-
-.status-detail-encrypted {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: #667781;
-  font-size: 13px;
-}
-
-/* Status Viewer */
+/* Status Viewer - Premium FULL SCREEN FEEL */
 .status-viewer {
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: #000;
   position: relative;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
 .status-viewer-header {
   position: absolute;
-  top: 0;
+  top: 15px; /* Offset for progress bars */
   left: 0;
   right: 0;
-  padding: 20px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+  padding: 15px 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
   display: flex;
   align-items: center;
   gap: 15px;
   z-index: 10;
 }
 
-.status-viewer-user-info {
+.status-viewer-user-info { flex: 1; }
+.status-viewer-name { color: #fff; font-weight: 500; font-size: 16px; }
+.status-viewer-time { color: rgba(255,255,255,0.7); font-size: 13px; }
+
+/* Progress Bars */
+.status-progress-container {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 20;
+}
+
+.status-progress-bg {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
   flex: 1;
+  border-radius: 1px;
+  overflow: hidden;
 }
 
-.status-viewer-name {
-  color: #fff;
-  font-weight: 500;
-  font-size: 16px;
+.status-progress-fill {
+  height: 100%;
+  background: white;
+  width: 0%;
 }
 
-.status-viewer-time {
-  color: rgba(255,255,255,0.7);
-  font-size: 13px;
+.status-progress-fill.filled { width: 100%; }
+.status-progress-fill.active {
+  width: 100%;
+  animation: grow 5s linear forwards;
+}
+
+@keyframes grow { from { width: 0; } to { width: 100%; } }
+
+.status-viewer-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* Prevent overflow of large images */
+  background-color: #000;
 }
 
 .status-viewer-media {
   max-width: 100%;
-  max-height: calc(100vh - 120px);
-  object-fit: contain;
+  max-height: calc(100vh - 180px); /* Subtract header and footer height */
+  object-fit: contain; /* Ensure entire image is visible */
+  display: block;
+  margin: auto;
 }
 
 .status-viewer-caption {
   position: absolute;
-  bottom: 40px;
+  bottom: 100px;
   left: 0;
   right: 0;
   text-align: center;
@@ -252,15 +236,83 @@
   background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
   color: #fff;
   font-size: 18px;
+  z-index: 5;
 }
+
+/* Status Navigation Arrows */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: rgba(0,0,0,0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 24px;
+  z-index: 30;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.status-viewer:hover .nav-arrow { opacity: 1; }
+.nav-arrow.left { left: 20px; }
+.nav-arrow.right { right: 20px; }
+
+/* Reply Footer - MATCHING SCREENSHOT */
+.status-viewer-footer {
+  width: 100%;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  position: absolute;
+  bottom: 0;
+  z-index: 40;
+}
+
+.status-reply-input-bar {
+  width: 80%;
+  max-width: 600px;
+  background-color: #2a3942;
+  border-radius: 10px;
+  padding: 8px 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.reply-icon {
+  color: #8696a0;
+  cursor: pointer;
+}
+
+.status-reply-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d1d7db;
+  font-size: 15px;
+}
+
+.reply-send-btn {
+  color: #8696a0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.reply-send-btn:hover { color: #00a884; }
 
 /* Status Creator Modalish Overlay */
 .status-creator-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: #0b141a;
   z-index: 100;
   display: flex;
@@ -275,114 +327,51 @@
   border-bottom: 1px solid #2a3942;
 }
 
-.status-creator-title {
-  flex: 1;
-  font-size: 18px;
-  font-weight: 500;
-}
+.status-creator-title { flex: 1; font-size: 18px; font-weight: 500; }
 
 .status-creator-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  position: relative;
-  overflow-y: auto;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px; position: relative; overflow-y: auto;
 }
 
 .status-preview-container {
-  max-width: 500px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
+  max-width: 500px; width: 100%;
+  display: flex; flex-direction: column; gap: 20px; align-items: center;
 }
 
 .status-preview-media {
-  max-width: 100%;
-  max-height: 400px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  max-width: 100%; max-height: 400px;
+  border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .status-input-wrapper {
-  width: 100%;
-  background-color: #202c33;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  gap: 10px;
-  position: relative;
+  width: 100%; background-color: #202c33;
+  border-radius: 8px; display: flex; align-items: center;
+  padding: 10px 15px; gap: 10px; position: relative;
 }
 
-.status-text-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #e9edef;
-  font-size: 16px;
-  outline: none;
-}
-
-.status-emoji-btn {
-  color: #8696a0;
-  cursor: pointer;
-}
+.status-text-input { flex: 1; background: transparent; border: none; color: #e9edef; font-size: 16px; outline: none; }
+.status-emoji-btn { color: #8696a0; cursor: pointer; }
 
 .status-emoji-picker {
-  position: absolute;
-  bottom: 60px;
-  right: 0;
-  z-index: 110;
+  position: absolute; bottom: 60px; right: 0; z-index: 110;
 }
 
 .status-upload-btn {
-  background-color: #00a884;
-  color: #111b21;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  margin-left: 10px;
+  background-color: #00a884; color: #111b21;
+  border: none; border-radius: 50%; width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;
 }
 
-.status-upload-btn:disabled {
-  background-color: #2a3942;
-  color: #8696a0;
-  cursor: not-allowed;
-}
+.status-upload-btn:disabled { background-color: #2a3942; color: #8696a0; cursor: not-allowed; }
 
-/* Scrollbar for status sidebar */
-.status-sidebar::-webkit-scrollbar {
-  width: 6px;
-}
+/* Scrollbar */
+.status-sidebar::-webkit-scrollbar { width: 6px; }
+.status-sidebar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); border-radius: 3px; }
 
-.status-sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.status-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Mobile responsive */
 @media (max-width: 768px) {
-  .status-sidebar {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .status-detail-empty {
-    display: none;
-  }
+  .status-sidebar { width: 100%; min-width: 100%; }
+  .status-detail-empty { display: none; }
 }

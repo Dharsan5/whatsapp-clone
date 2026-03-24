@@ -6,9 +6,11 @@
   background-color: #0b141a;
 }
 
-/* Messages area — WhatsApp background */
+/* Messages area — WhatsApp background with dark tint */
 .chat-window .messages-container {
-  background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+  background-image:
+    linear-gradient(rgba(11, 20, 26, 0.85), rgba(11, 20, 26, 0.85)),
+    url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
   background-size: 50%;
 }
 

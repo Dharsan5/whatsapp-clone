@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { FiSmile, FiArrowLeft, FiSearch, FiMoreVertical, FiPaperclip, FiSend } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { emptyChatImage, emptyProfilePicture } from "../utils/constants";
@@ -136,7 +137,7 @@ const ChatWindow = ({
       <div className="chat-header">
         {onBack && (
           <button className="back-btn" onClick={onBack}>
-            ←
+            <FiArrowLeft size={22} />
           </button>
         )}
         <img
@@ -155,8 +156,8 @@ const ChatWindow = ({
           )}
         </div>
         <div className="chat-header-icons">
-          <span>&#128269;</span>
-          <span>&#8942;</span>
+          <span title="Search"><FiSearch size={20} /></span>
+          <span title="Menu"><FiMoreVertical size={20} /></span>
         </div>
       </div>
 
@@ -195,8 +196,8 @@ const ChatWindow = ({
       {/* Footer / Message input */}
       <form className="message-input-container" onSubmit={handleSend}>
         <div className="input-icons">
-          <span title="Emoji">&#128578;</span>
-          <span title="Attach">&#128206;</span>
+          <span title="Emoji"><FiSmile size={22} /></span>
+          <span title="Attach"><FiPaperclip size={22} /></span>
         </div>
         <div className="message-input-wrapper">
           <input
@@ -209,7 +210,7 @@ const ChatWindow = ({
           />
         </div>
         <button type="submit" className="send-btn" disabled={sending} title="Send">
-          ➤
+          <FiSend size={20} />
         </button>
       </form>
     </div>

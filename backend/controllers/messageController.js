@@ -4,38 +4,54 @@ const User = require("../models/User");
 
 // @desc    Send a message
 // @route   POST /api/messages
-// @access  Private (must be logged in)
+// @access  Private
 const sendMessage = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { receiverId, content, messageType, location } = req.body;
+    const senderId = req.user.id;
+
+    // Handle JSON data if sent as string via FormData
+    let parsedLocation = null;
+    if (location) {
+      try {
+        parsedLocation = typeof location === "string" ? JSON.parse(location) : location;
+      } catch (e) {
+        console.error("Location parse error", e);
+      }
     }
 
-    const { receiverId, content } = req.body;
-    const senderId = req.user.id; // Comes from auth middleware (JWT decoded)
-
-    // Make sure receiver exists
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ message: "Receiver not found" });
     }
 
-    // Can't send a message to yourself
-    if (senderId === receiverId) {
-      return res.status(400).json({ message: "Cannot send message to yourself" });
+    let mediaUrl = "";
+    let fileName = "";
+    let finalMessageType = messageType || "text";
+
+    // If file uploaded to Cloudinary
+    if (req.file) {
+      mediaUrl = req.file.path;
+      fileName = req.file.originalname;
+
+      // Determine message type from file mimetype if not explicitly provided
+      if (!messageType || messageType === "text") {
+        if (req.file.mimetype.startsWith("image")) finalMessageType = "image";
+        else if (req.file.mimetype.startsWith("video")) finalMessageType = "video";
+        else finalMessageType = "document";
+      }
     }
 
-    // Create and save the message
     const message = await Message.create({
       sender: senderId,
       receiver: receiverId,
-      content,
+      content: content || "",
+      messageType: finalMessageType,
+      mediaUrl,
+      fileName,
+      location: parsedLocation,
     });
 
-    // Populate sender & receiver info (replace IDs with actual user data)
-    // Before populate: { sender: "64abc...", receiver: "64def..." }
-    // After populate:  { sender: { _id: "64abc", username: "john" }, ... }
     const populatedMessage = await message.populate([
       { path: "sender", select: "username avatar" },
       { path: "receiver", select: "username avatar" },
@@ -47,22 +63,12 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Get messages between logged-in user and another user
-// @route   GET /api/messages/:userId
-// @access  Private
+// @desc    Get messages between users
 const getMessages = async (req, res) => {
   try {
     const myId = req.user.id;
     const otherUserId = req.params.userId;
 
-    // Validate that the other user exists
-    const otherUser = await User.findById(otherUserId);
-    if (!otherUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Find all messages between these two users (in both directions)
-    // Either: I sent to them  OR  they sent to me
     const messages = await Message.find({
       $or: [
         { sender: myId, receiver: otherUserId },
@@ -71,7 +77,7 @@ const getMessages = async (req, res) => {
     })
       .populate("sender", "username avatar")
       .populate("receiver", "username avatar")
-      .sort({ createdAt: 1 }); // 1 = oldest first (chronological order)
+      .sort({ createdAt: 1 });
 
     res.json(messages);
   } catch (error) {
@@ -79,17 +85,11 @@ const getMessages = async (req, res) => {
   }
 };
 
-// @desc    Get last message for each conversation
-// @route   GET /api/messages/last-messages
-// @access  Private
+// @desc    Get last message per conversation
 const getLastMessages = async (req, res) => {
   try {
-    const myId = req.user.id;
-
-    // Aggregation pipeline — groups messages by conversation and picks the latest
     const lastMessages = await Message.aggregate([
       {
-        // Find all messages where I'm either sender or receiver
         $match: {
           $or: [
             { sender: req.user._id },
@@ -97,29 +97,18 @@ const getLastMessages = async (req, res) => {
           ],
         },
       },
+      { $sort: { createdAt: -1 } },
       {
-        // Sort by newest first
-        $sort: { createdAt: -1 },
-      },
-      {
-        // Group by conversation partner and pick the first (newest) message
         $group: {
           _id: {
-            $cond: [
-              { $eq: ["$sender", req.user._id] },
-              "$receiver",
-              "$sender",
-            ],
+            $cond: [{ $eq: ["$sender", req.user._id] }, "$receiver", "$sender"],
           },
           lastMessage: { $first: "$$ROOT" },
         },
       },
-      {
-        $replaceRoot: { newRoot: "$lastMessage" },
-      },
+      { $replaceRoot: { newRoot: "$lastMessage" } },
     ]);
 
-    // Populate sender and receiver info
     const populated = await Message.populate(lastMessages, [
       { path: "sender", select: "username avatar" },
       { path: "receiver", select: "username avatar" },

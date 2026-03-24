@@ -1,10 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { FiSmile, FiArrowLeft, FiSearch, FiMoreVertical, FiPaperclip, FiSend } from "react-icons/fi";
+import { 
+  FiSmile, FiArrowLeft, FiSearch, FiMoreVertical, 
+  FiPaperclip, FiSend, FiX, FiImage, FiFileText, 
+  FiMapPin, FiCamera, FiLayout, FiDownload 
+} from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { emptyChatImage } from "../utils/constants";
 import DefaultAvatar from "./DefaultAvatar";
+import EmojiPicker from "emoji-picker-react";
 import "./ChatWindow.css";
+
+const AttachmentMenu = ({ onSelect, onClose }) => {
+  return (
+    <div className="attachment-menu" onMouseLeave={onClose}>
+      <div className="attachment-item" onClick={() => onSelect('image')}>
+        <div className="attach-icon-circle attach-photos"><FiImage size={24} /></div>
+        <span>Photos & Videos</span>
+      </div>
+      <div className="attachment-item" onClick={() => onSelect('camera')}>
+        <div className="attach-icon-circle attach-camera"><FiCamera size={24} /></div>
+        <span>Camera</span>
+      </div>
+      <div className="attachment-item" onClick={() => onSelect('document')}>
+        <div className="attach-icon-circle attach-document"><FiFileText size={24} /></div>
+        <span>Document</span>
+      </div>
+      <div className="attachment-item" onClick={() => onSelect('location')}>
+        <div className="attach-icon-circle attach-location"><FiMapPin size={24} /></div>
+        <span>Location</span>
+      </div>
+    </div>
+  );
+};
 
 const ChatWindow = ({
   selectedUser,
@@ -20,6 +48,15 @@ const ChatWindow = ({
   const { user } = useAuth();
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  
+  // UI States
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [fileToUpload, setFileToUpload] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
+  const [fileCaption, setFileCaption] = useState("");
+  const fileInputRef = useRef(null);
+  const docInputRef = useRef(null);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -51,13 +88,18 @@ const ChatWindow = ({
     [socket, selectedUser, user]
   );
 
-  // Send message handler
+  // Send message handler (text only)
   const handleSend = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
-    setSending(true);
+    await sendMessageData({ content: newMessage.trim(), messageType: "text" });
+    setNewMessage("");
+  };
 
+  // Generic message sending function
+  const sendMessageData = async (data) => {
+    setSending(true);
     if (socket && selectedUser) {
       socket.emit("stop_typing", {
         senderId: user._id,
@@ -66,22 +108,37 @@ const ChatWindow = ({
     }
 
     try {
-      const res = await api.post("/messages", {
-        receiverId: selectedUser._id,
-        content: newMessage.trim(),
-      });
-
-      setMessages((prev) => [...prev, res.data]);
-
-      if (socket) {
-        socket.emit("send_message", res.data);
+      let response;
+      if (data.file) {
+        // Handle file upload via FormData
+        const formData = new FormData();
+        formData.append("receiverId", selectedUser._id);
+        formData.append("media", data.file);
+        formData.append("content", data.caption || "");
+        formData.append("messageType", data.messageType);
+        
+        response = await api.post("/messages", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else if (data.location) {
+        // Handle location sending
+        response = await api.post("/messages", {
+          receiverId: selectedUser._id,
+          messageType: "location",
+          location: data.location,
+        });
+      } else {
+        // Handle normal text
+        response = await api.post("/messages", {
+          receiverId: selectedUser._id,
+          content: data.content,
+          messageType: data.messageType || "text",
+        });
       }
 
-      if (onMessageSent) {
-        onMessageSent(res.data);
-      }
-
-      setNewMessage("");
+      setMessages((prev) => [...prev, response.data]);
+      if (socket) socket.emit("send_message", response.data);
+      if (onMessageSent) onMessageSent(response.data);
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {
@@ -89,30 +146,121 @@ const ChatWindow = ({
     }
   };
 
-  // Format timestamp
-  const formatTime = (dateStr) => {
-    const hours = new Date(dateStr).getHours();
-    const minutes = new Date(dateStr).getMinutes();
-    return `${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}`;
+  // File Upload Handlers
+  const openFileSelector = (type) => {
+    setShowAttachmentMenu(false);
+    if (type === 'image' || type === 'camera') fileInputRef.current.click();
+    if (type === 'document') docInputRef.current.click();
+    if (type === 'location') sendCurrentLocation();
   };
 
-  // Date label for separators
-  const getDateLabel = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-    const oneDay = 24 * 60 * 60 * 1000;
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileToUpload(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setFilePreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
-    if (diff < oneDay && date.getDate() === now.getDate()) return "Today";
-    if (diff < 2 * oneDay) return "Yesterday";
-    return date.toLocaleDateString([], {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
+  const handleSendFile = async () => {
+    if (!fileToUpload) return;
+    
+    let type = "document";
+    if (fileToUpload.type.startsWith("image")) type = "image";
+    else if (fileToUpload.type.startsWith("video")) type = "video";
+
+    await sendMessageData({
+      file: fileToUpload,
+      caption: fileCaption,
+      messageType: type
     });
+
+    setFileToUpload(null);
+    setFilePreview("");
+    setFileCaption("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (docInputRef.current) docInputRef.current.value = "";
   };
 
-  // Empty state
+  const sendCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        sendMessageData({
+          location: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            label: "Current Location"
+          }
+        });
+      },
+      () => alert("Unable to retrieve your location")
+    );
+  };
+
+  const onEmojiSelect = (emojiData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+  };
+
+  // Message Bubble Component
+  const MessageBubble = ({ msg }) => {
+    const isMe = msg.sender._id === user._id;
+
+    return (
+      <div className={`message ${isMe ? "sent" : "received"}`}>
+        <div className="message-bubble">
+          {/* Render content based on type */}
+          {msg.messageType === "image" && (
+            <img src={msg.mediaUrl} alt="Sent image" className="message-media" />
+          )}
+
+          {msg.messageType === "video" && (
+            <video src={msg.mediaUrl} controls className="message-video" />
+          )}
+
+          {msg.messageType === "document" && (
+            <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="message-document">
+              <div className="attach-icon-circle attach-document">
+                <FiDownload size={20} />
+              </div>
+              <div className="doc-info">
+                <div className="doc-name">{msg.fileName || "Document"}</div>
+                <div className="doc-size">PDF • 1.2 MB</div>
+              </div>
+            </a>
+          )}
+
+          {msg.messageType === "location" && (
+            <a 
+              href={`https://www.google.com/maps?q=${msg.location.latitude},${msg.location.longitude}`} 
+              target="_blank" 
+              rel="noreferrer" 
+              className="message-location"
+            >
+              <div className="location-map-preview">
+                <FiMapPin size={24} />
+                <span>Google Maps View</span>
+              </div>
+              <div className="location-label">📍 {msg.location.label || "Pinned Location"}</div>
+            </a>
+          )}
+
+          {msg.content && <p className="message-text">{msg.content}</p>}
+          
+          <span className="message-time">
+            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   if (!selectedUser) {
     return (
       <div className="chat-window empty">
@@ -130,10 +278,25 @@ const ChatWindow = ({
   }
 
   const isTyping = typingUsers?.includes(selectedUser._id);
-  let lastDateLabel = "";
 
   return (
     <div className="chat-window">
+      {/* Hidden file inputs */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        style={{ display: "none" }} 
+        accept="image/*,video/*" 
+        onChange={handleFileSelect} 
+      />
+      <input 
+        type="file" 
+        ref={docInputRef} 
+        style={{ display: "none" }} 
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
+        onChange={handleFileSelect} 
+      />
+
       {/* Chat header */}
       <div className="chat-header">
         {onBack && (
@@ -148,7 +311,7 @@ const ChatWindow = ({
             <div className="chat-header-typing">typing...</div>
           ) : (
             <div className="chat-header-status">
-              {typingUsers ? "Online" : "Offline"}
+              {typingUsers?.includes(selectedUser._id) ? "Online" : "Offline"}
             </div>
           )}
         </div>
@@ -160,41 +323,48 @@ const ChatWindow = ({
 
       {/* Messages area */}
       <div className="messages-container">
-        {messages.map((msg) => {
-          const dateLabel = getDateLabel(msg.createdAt);
-          const showDateSeparator = dateLabel !== lastDateLabel;
-          lastDateLabel = dateLabel;
-
-          return (
-            <div key={msg._id}>
-              {showDateSeparator && (
-                <div className="date-separator">
-                  <span>{dateLabel}</span>
-                </div>
-              )}
-              <div
-                className={`message ${
-                  msg.sender._id === user._id ? "sent" : "received"
-                }`}
-              >
-                <div className="message-bubble">
-                  <p className="message-text">{msg.content}</p>
-                  <span className="message-time">
-                    {formatTime(msg.createdAt)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {messages.map((msg) => (
+          <MessageBubble key={msg._id} msg={msg} />
+        ))}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Emoji Picker Overlay */}
+      {showEmojiPicker && (
+        <div className="emoji-picker-wrapper">
+          <EmojiPicker onEmojiClick={onEmojiSelect} theme="dark" width={320} height={400} />
+        </div>
+      )}
+
+      {/* Attachment Menu Overlay */}
+      {showAttachmentMenu && (
+        <AttachmentMenu 
+          onSelect={openFileSelector} 
+          onClose={() => setShowAttachmentMenu(false)} 
+        />
+      )}
+
       {/* Footer / Message input */}
-      <form className="message-input-container" onSubmit={handleSend}>
+      <form 
+        className="message-input-container" 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend(e);
+        }}
+      >
         <div className="input-icons">
-          <span title="Emoji"><FiSmile size={22} /></span>
-          <span title="Attach"><FiPaperclip size={22} /></span>
+          <span title="Emoji" onClick={() => {
+            setShowEmojiPicker(!showEmojiPicker);
+            setShowAttachmentMenu(false);
+          }}>
+            <FiSmile size={24} color={showEmojiPicker ? "#00a884" : "#8696a0"} />
+          </span>
+          <span title="Attach" onClick={() => {
+            setShowAttachmentMenu(!showAttachmentMenu);
+            setShowEmojiPicker(false);
+          }}>
+            <FiPaperclip size={24} color={showAttachmentMenu ? "#00a884" : "#8696a0"} />
+          </span>
         </div>
         <div className="message-input-wrapper">
           <input
@@ -204,12 +374,60 @@ const ChatWindow = ({
             placeholder="Type a message"
             className="message-input"
             disabled={sending}
+            onFocus={() => {
+              setShowEmojiPicker(false);
+              setShowAttachmentMenu(false);
+            }}
           />
         </div>
-        <button type="submit" className="send-btn" disabled={sending} title="Send">
-          <FiSend size={20} />
+        <button type="submit" className="send-btn" disabled={sending || !newMessage.trim()} title="Send">
+          <FiSend size={24} />
         </button>
       </form>
+
+      {/* File Preview Modal Overlay */}
+      {fileToUpload && (
+        <div className="file-preview-overlay">
+          <div className="file-preview-header">
+            <FiX size={24} className="send-btn" onClick={() => {
+              setFileToUpload(null);
+              setFilePreview("");
+            }} />
+            <span>Send File</span>
+          </div>
+          <div className="file-preview-content">
+            <div className="preview-media-container">
+              {fileToUpload.type.startsWith('video') ? (
+                <video src={filePreview} controls />
+              ) : fileToUpload.type.startsWith('image') ? (
+                <img src={filePreview} alt="Preview" />
+              ) : (
+                <div className="attach-icon-circle attach-document" style={{'width': '100px', 'height': '100px'}}>
+                  <FiFileText size={48} />
+                </div>
+              )}
+              <div style={{'textAlign': 'center', 'marginTop': '10px', 'color': '#8696a0'}}>
+                {fileToUpload.name}
+              </div>
+            </div>
+            <div className="preview-footer">
+              <input
+                className="preview-caption-input"
+                placeholder="Add a caption..."
+                value={fileCaption}
+                onChange={(e) => setFileCaption(e.target.value)}
+              />
+              <button 
+                className="preview-send-btn" 
+                onClick={handleSendFile}
+                disabled={sending}
+              >
+                {sending ? <div className="loading-spinner" style={{'width': '20px', 'height': '20px'}}></div> : <FiSend size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

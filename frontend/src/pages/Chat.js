@@ -16,55 +16,56 @@ const Chat = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [lastMessages, setLastMessages] = useState({});  // { userId: { content, createdAt } }
-  const [typingUsers, setTypingUsers] = useState([]);     // [userId, userId, ...]
+  const [lastMessages, setLastMessages] = useState({});
+  const [typingUsers, setTypingUsers] = useState([]);
   const socketRef = useRef(null);
-  const selectedUserRef = useRef(null); // Track selected user for socket callbacks
+  const selectedUserRef = useRef(null);
 
-  // Keep ref in sync with state (so socket callbacks see latest value)
   useEffect(() => {
     selectedUserRef.current = selectedUser;
   }, [selectedUser]);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/login");
-    }
+    if (!loading && !user) navigate("/login");
   }, [user, loading, navigate]);
 
-  // Initialize Socket.IO
+  const getPreviewText = (msg) => {
+    if (!msg) return "";
+    switch (msg.messageType) {
+      case "image": return "📷 Photo";
+      case "video": return "📹 Video";
+      case "document": return "📄 Document";
+      case "location": return "📍 Location";
+      default: return msg.content;
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
 
     socketRef.current = io("http://localhost:5000");
     socketRef.current.emit("user_online", user._id);
 
-    socketRef.current.on("online_users", (onUsers) => {
-      setOnlineUsers(onUsers);
-    });
+    socketRef.current.on("online_users", (onUsers) => setOnlineUsers(onUsers));
 
-    // Incoming message handler
     socketRef.current.on("receive_message", (message) => {
       const senderId = message.sender._id;
 
-      // Update last message preview for this sender
       setLastMessages((prev) => ({
         ...prev,
-        [senderId]: { content: message.content, createdAt: message.createdAt },
+        [senderId]: { 
+          content: getPreviewText(message), 
+          createdAt: message.createdAt 
+        },
       }));
 
-      // Only add to chat window if we're currently chatting with this sender
       if (selectedUserRef.current?._id === senderId) {
         setMessages((prev) => [...prev, message]);
       }
     });
 
-    // Typing indicator
     socketRef.current.on("user_typing", ({ userId }) => {
-      setTypingUsers((prev) =>
-        prev.includes(userId) ? prev : [...prev, userId]
-      );
+      setTypingUsers((prev) => prev.includes(userId) ? prev : [...prev, userId]);
     });
 
     socketRef.current.on("user_stop_typing", ({ userId }) => {
@@ -76,10 +77,8 @@ const Chat = () => {
     };
   }, [user]);
 
-  // Fetch all users
   useEffect(() => {
     if (!user) return;
-
     const fetchUsers = async () => {
       try {
         const res = await api.get("/users");
@@ -88,24 +87,19 @@ const Chat = () => {
         console.error("Failed to fetch users:", err);
       }
     };
-
     fetchUsers();
   }, [user]);
 
-  // Fetch last messages for all users (for sidebar preview)
   useEffect(() => {
     if (!user || users.length === 0) return;
-
     const fetchLastMessages = async () => {
       try {
         const res = await api.get("/messages/last-messages");
         const mapped = {};
         res.data.forEach((msg) => {
-          // Figure out the OTHER user's ID
-          const otherUserId =
-            msg.sender._id === user._id ? msg.receiver._id : msg.sender._id;
+          const otherUserId = msg.sender._id === user._id ? msg.receiver._id : msg.sender._id;
           mapped[otherUserId] = {
-            content: msg.content,
+            content: getPreviewText(msg),
             createdAt: msg.createdAt,
             isMine: msg.sender._id === user._id,
           };
@@ -115,14 +109,11 @@ const Chat = () => {
         console.error("Failed to fetch last messages:", err);
       }
     };
-
     fetchLastMessages();
   }, [user, users]);
 
-  // Fetch messages when a user is selected
   useEffect(() => {
     if (!selectedUser) return;
-
     const fetchMessages = async () => {
       try {
         const res = await api.get(`/messages/${selectedUser._id}`);
@@ -131,34 +122,26 @@ const Chat = () => {
         console.error("Failed to fetch messages:", err);
       }
     };
-
     fetchMessages();
   }, [selectedUser]);
 
-  const handleSelectUser = (u) => {
-    setSelectedUser(u);
-  };
-
-  // Called when a message is sent — updates sidebar last message preview
   const handleMessageSent = useCallback((message) => {
     const receiverId = message.receiver._id;
     setLastMessages((prev) => ({
       ...prev,
       [receiverId]: {
-        content: message.content,
+        content: getPreviewText(message),
         createdAt: message.createdAt,
         isMine: true,
       },
     }));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="loading-screen">
+      <div className="loading-spinner"></div>
+    </div>
+  );
 
   if (!user) return null;
 
@@ -169,7 +152,7 @@ const Chat = () => {
         <Sidebar
           users={users}
           selectedUser={selectedUser}
-          onSelectUser={handleSelectUser}
+          onSelectUser={(u) => setSelectedUser(u)}
           onlineUsers={onlineUsers}
           lastMessages={lastMessages}
           typingUsers={typingUsers}

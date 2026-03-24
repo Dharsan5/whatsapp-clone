@@ -1,18 +1,32 @@
 import { useAuth } from "../context/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./NavSidebar.css";
 
-const NavSidebar = () => {
+const NavSidebar = ({ activePage }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine active page from prop or from URL
+  const currentPage = activePage || (location.pathname === "/status" ? "status" : "chat");
 
   return (
     <div className="nav-sidebar">
       <div className="nav-top">
-        <div className="nav-icon active" title="Chats">
+        <div
+          className={`nav-icon ${currentPage === "chat" ? "active" : ""}`}
+          title="Chats"
+          onClick={() => navigate("/chat")}
+        >
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
             <path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"/>
           </svg>
         </div>
-        <div className="nav-icon" title="Status">
+        <div
+          className={`nav-icon ${currentPage === "status" ? "active" : ""}`}
+          title="Status"
+          onClick={() => navigate("/status")}
+        >
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
             <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"/>
             <circle cx="12" cy="12" r="3"/>

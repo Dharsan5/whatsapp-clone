@@ -77,10 +77,17 @@
   display: none;
   background: none;
   border: none;
-  color: #e9edef;
-  font-size: 22px;
+  color: #aebac1;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+  line-height: 0;
+}
+
+.back-btn:hover {
+  background-color: #2a3942;
+  color: #e9edef;
 }
 
 .chat-header-avatar-img {
@@ -114,7 +121,6 @@
   display: flex;
   gap: 4px;
   color: #aebac1;
-  font-size: 22px;
 }
 
 .chat-header-icons span {
@@ -125,11 +131,12 @@
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.15s;
 }
 
 .chat-header-icons span:hover {
   background-color: #2a3942;
+  color: #e9edef;
 }
 
 /* Messages */
@@ -145,6 +152,18 @@
 .message {
   display: flex;
   margin-bottom: 2px;
+  animation: msgSlideIn 0.2s ease-out;
+}
+
+@keyframes msgSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message.sent {
@@ -223,7 +242,6 @@
   align-items: center;
   gap: 2px;
   color: #8696a0;
-  font-size: 22px;
 }
 
 .input-icons span {
@@ -234,11 +252,12 @@
   justify-content: center;
   cursor: pointer;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.15s;
 }
 
 .input-icons span:hover {
   background-color: #2a3942;
+  color: #e9edef;
 }
 
 .message-input-wrapper {
@@ -267,16 +286,32 @@
   background: none;
   border: none;
   color: #8696a0;
-  font-size: 22px;
   cursor: pointer;
   padding: 8px;
-  transition: color 0.2s;
+  transition: color 0.2s, transform 0.15s;
   display: flex;
   align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
 }
 
 .send-btn:hover {
   color: #00a884;
+}
+
+.send-btn:active {
+  transform: scale(0.9);
+}
+
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.send-btn:disabled:hover {
+  color: #8696a0;
 }
 
 /* Scrollbar */
@@ -296,7 +331,7 @@
 /* Mobile */
 @media (max-width: 768px) {
   .back-btn {
-    display: block;
+    display: flex;
   }
 
   .messages-container {

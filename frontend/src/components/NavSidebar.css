@@ -33,15 +33,20 @@
   border-radius: 50%;
   cursor: pointer;
   color: #aebac1;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.15s;
   position: relative;
 }
 
 .nav-icon:hover {
   background-color: #2a3942;
+  color: #e9edef;
 }
 
 .nav-icon.active {
+  color: #00a884;
+}
+
+.nav-icon.active:hover {
   color: #00a884;
 }
 
@@ -73,6 +78,11 @@
   color: white;
   font-size: 14px;
   font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.nav-profile:hover .nav-profile-avatar {
+  background-color: #8696a0;
 }
 
 @media (max-width: 768px) {

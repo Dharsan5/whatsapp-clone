@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { 
   FiX, FiInfo, FiKey, FiLock, FiMessageSquare, 
   FiBell, FiCommand, FiHelpCircle, FiUser, FiArrowLeft, 
-  FiCamera, FiEdit2, FiCheck, FiMoon, FiImage, FiSettings, FiChevronDown
+  FiCamera, FiEdit2, FiCheck, FiMoon, FiImage, FiSettings, FiChevronDown, FiLogOut
 } from "react-icons/fi";
 import NavSidebar from "../components/NavSidebar";
 import DefaultAvatar from "../components/DefaultAvatar";
@@ -37,7 +37,7 @@ const SelectField = ({ value, options, onChange }) => (
 );
 
 const Settings = () => {
-  const { user, loading, updateProfile } = useAuth();
+  const { user, loading, updateProfile, logout } = useAuth();
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSubPage, setActiveSubPage] = useState(null);
@@ -91,6 +91,7 @@ const Settings = () => {
     { id: 'keyboard',      icon: <FiCommand />,      title: "Keyboard shortcuts",  desc: "Quick actions" },
     { id: 'help',          icon: <FiHelpCircle />,   title: "Help",               desc: "Help center, contact us, privacy policy" },
     { id: 'profile',       icon: <FiUser />,         title: "Profile",            desc: "Name, about, photo" },
+    { id: 'logout',        icon: <FiLogOut style={{color: '#f15c6d'}} />, title: <span style={{color: '#f15c6d'}}>Log out</span>, desc: "" },
   ];
 
   const visibilityOptions = ["Everyone", "My contacts", "My contacts except...", "Nobody"];
@@ -382,7 +383,18 @@ const Settings = () => {
             </div>
             <div className="settings-menu">
               {filteredOptions.map((opt) => (
-                <div key={opt.id} className={`settings-menu-item ${activeSubPage === opt.id ? 'active' : ''}`} onClick={() => setActiveSubPage(opt.id)}>
+                <div 
+                  key={opt.id} 
+                  className={`settings-menu-item ${activeSubPage === opt.id ? 'active' : ''}`} 
+                  onClick={() => {
+                    if (opt.id === 'logout') {
+                      logout();
+                      window.location.href = '/login';
+                    } else {
+                      setActiveSubPage(opt.id);
+                    }
+                  }}
+                >
                   <div className="menu-icon-wrapper">{opt.icon}</div>
                   <div className="menu-text">
                     <div className="menu-title">{opt.title}</div>

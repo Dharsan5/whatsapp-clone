@@ -13,9 +13,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "whatsapp_clone_status", // Folder name in Cloudinary
-    allowed_formats: ["jpg", "jpeg", "png", "mp4", "mov"],
-    resource_type: "auto", // Automatically detect if it's an image or video
+    folder: "whatsapp_clone_status",
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "zip"],
+    resource_type: "auto",
   },
 });
 

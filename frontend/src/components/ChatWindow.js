@@ -473,16 +473,57 @@ const ChatWindow = ({ selectedUser, messages, setMessages, socket, onMessageSent
       {showAttach && (
         <div className="attachment-menu" onClick={e => e.stopPropagation()}>
           {[
-            { label: "Photos & Videos", cls: "attach-photos", emoji: "🖼️", type: "image" },
-            { label: "Camera",          cls: "attach-camera",  emoji: "📷", type: "image" },
-            { label: "Document",        cls: "attach-document",emoji: "📄", type: "document" },
-            { label: "Location",        cls: "attach-location",emoji: "📍", type: "location" },
-          ].map(({ label, cls, emoji, type }) => (
+            { 
+              label: "Photos & Videos", 
+              cls: "attach-photos", 
+              type: "image",
+              icon: (
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+                  <path d="M21.2 5.3h-18.4c-1.5 0-2.8 1.3-2.8 2.8v10.4c0 1.5 1.3 2.8 2.8 2.8h18.4c1.5 0 2.8-1.3 2.8-2.8v-10.4c0-1.5-1.3-2.8-2.8-2.8zM21.2 19.5h-18.4c-.4 0-.8-.4-.8-.8v-10.4c0-.4.4-.8.8-.8h18.4c.4 0 .8.4.8.8v10.4c0 .4-.4.8-.8.8z"/>
+                  <circle cx="7.7" cy="10.8" r="2"/>
+                  <path d="M19.1 18.2l-5.3-6.5c-.3-.4-.8-.4-1.1 0l-1.9 2.3-3.6-4.5c-.3-.4-.8-.4-1.1 0l-3.3 4.1.8 1.1 2.8-3.4 3.7 4.6c.3.4.8.4 1.1 0l1.8-2.2 4.1 5h2.4v-1.2h-.4z"/>
+                </svg>
+              )
+            },
+            { 
+              label: "Camera",          
+              cls: "attach-camera",  
+              type: "image",
+              icon: (
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+                  <path d="M20.2 6.6h-3.3l-1.6-2.1c-.2-.3-.6-.5-.9-.5h-4.8c-.4 0-.7.2-.9.5l-1.6 2.1h-3.3c-1.3 0-2.3 1-2.3 2.3v10.3c0 1.3 1 2.3 2.3 2.3h16.4c1.3 0 2.3-1 2.3-2.3v-10.3c0-1.3-1-2.3-2.3-2.3zm.5 12.6c0 .3-.2.5-.5.5h-16.4c-.3 0-.5-.2-.5-.5v-10.3c0-.3.2-.5.5-.5h3.9c.4 0 .8-.2 1-.5l1.6-2h3.4l1.6 2c.2.3.6.5 1 .5h3.9c.3 0 .5.2.5.5v10.3z"/>
+                  <circle cx="12" cy="14" r="3.8"/>
+                  <circle cx="12" cy="14" r="2.3"/>
+                </svg>
+              )
+            },
+            { 
+              label: "Document",        
+              cls: "attach-document",
+              type: "document",
+              icon: (
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+                  <path d="M18.8 6.5l-5.3-5.3c-.2-.2-.5-.3-.7-.3h-7c-1.1 0-2 .9-2 2v18.2c0 1.1.9 2 2 2h12.4c1.1 0 2-.9 2-2v-13.9c0-.2-.1-.5-.4-.7zm-5.2-3.8l3.7 3.7h-3.7v-3.7zm4.8 18.2h-12.4v-18.2h6.4v4.5c0 .6.5 1.1 1.1 1.1h4.9v12.6z"/>
+                  <path d="M7.7 12.8h8.6v1.8h-8.6zM7.7 16.2h8.6v1.8h-8.6z"/>
+                </svg>
+              )
+            },
+            { 
+              label: "Location",        
+              cls: "attach-location",
+              type: "location",
+              icon: (
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+                  <path d="M12 2c-3.9 0-7 3.1-7 7 0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z"/>
+                </svg>
+              )
+            },
+          ].map(({ label, cls, icon, type }) => (
             <div key={label} className="attachment-item" onClick={() => {
               if (type === "location") { showToast("📍 Location sharing coming soon"); setShowAttach(false); }
               else handleFileSelect(type);
             }}>
-              <div className={`attach-icon-circle ${cls}`}>{emoji}</div>
+              <div className={`attach-icon-circle ${cls}`}>{icon}</div>
               <span>{label}</span>
             </div>
           ))}

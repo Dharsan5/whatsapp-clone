@@ -374,12 +374,12 @@
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-.attachment-item { display: flex; align-items: center; gap: 15px; cursor: pointer; color: #e9edef; font-size: 14px; }
-.attach-icon-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
-.attach-photos { background: linear-gradient(180deg, #ac44cf, #7b3894); }
-.attach-camera { background: linear-gradient(180deg, #ff4c42, #d13028); }
-.attach-document { background: linear-gradient(180deg, #5f66cd, #4a50a1); }
-.attach-location { background: linear-gradient(180deg, #1ca056, #157941); }
+.attachment-item { display: flex; align-items: center; gap: 16px; cursor: pointer; color: #e9edef; font-size: 15px; }
+.attach-icon-circle { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+.attach-photos { background: #A242B6; }
+.attach-camera { background: #D3396D; }
+.attach-document { background: #515ACC; }
+.attach-location { background: #01A368; }
 
 .emoji-picker-wrapper { position: absolute; bottom: 75px; left: 10px; z-index: 100; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
 

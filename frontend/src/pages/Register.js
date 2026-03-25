@@ -23,7 +23,14 @@ const Register = () => {
       // Registration successful -> Go to onboarding
       navigate("/onboarding");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      if (err.response?.data?.errors && err.response.data.errors.length > 0) {
+        const firstError = err.response.data.errors[0];
+        // The express-validator returns the field name in `path` or `param`
+        const fieldName = firstError.path || firstError.param || "Field";
+        setError(`Invalid ${fieldName}: ${firstError.msg || "Please check your input."}`);
+      } else {
+        setError(err.response?.data?.message || "Registration failed. Please try again.");
+      }
     }
   };
 

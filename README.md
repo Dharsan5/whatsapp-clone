@@ -118,7 +118,7 @@ whatsapp-clone/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/whatsapp-clone.git
+git clone https://github.com/Dharsan5/whatsapp-clone.git
 cd whatsapp-clone
 ```
 

@@ -99,14 +99,31 @@
   font-weight: 500;
 }
 
+.chat-header-avatar { margin-right: 2px; }
+
 .chat-header-icons {
   display: flex;
-  gap: 20px;
+  gap: 4px;
   color: #aebac1;
 }
 
-.chat-header-icons span {
+.header-icon-btn {
+  background: none;
+  border: none;
+  color: #aebac1;
   cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.18s;
+}
+
+.header-icon-btn:hover {
+  background-color: #2a3942;
+  color: #e9edef;
 }
 
 /* Messages Area */
@@ -182,8 +199,55 @@
   font-size: 14.2px; line-height: 19px; margin: 0; white-space: pre-wrap; word-wrap: break-word; padding-right: 40px;
 }
 
-.message-time { align-self: flex-end; font-size: 11px; color: rgba(134, 150, 160, 0.6); margin-top: -5px; }
-.sent .message-time { color: rgba(255, 255, 255, 0.6); }
+/* Message meta: time + tick */
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.message-time {
+  font-size: 11px;
+  color: rgba(134, 150, 160, 0.8);
+  white-space: nowrap;
+}
+
+.sent .message-time { color: rgba(255,255,255,0.55); }
+
+.msg-tick {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: -2px;
+}
+
+.msg-tick.read { color: #53bdeb; }
+
+/* Typing indicator bubble */
+.typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px !important;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #8696a0;
+  border-radius: 50%;
+  display: inline-block;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
 
 /* Status Reply Preview */
 .status-reply-preview {
@@ -234,18 +298,73 @@
 /* Footer / Input Container */
 .message-input-container {
   min-height: 62px; background-color: #202c33; padding: 5px 16px;
-  display: flex; align-items: flex-end; gap: 8px; position: relative;
+  display: flex; align-items: center; gap: 4px; position: relative;
 }
 
-.input-icons { display: flex; padding-bottom: 11px; color: #8696a0; }
-.input-icons span { padding: 8px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
-.input-icons span:hover { background-color: #2a3942; }
+.message-input-wrapper {
+  flex: 1;
+  background-color: #2a3942;
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin: 7px 0;
+  display: flex;
+  align-items: center;
+}
 
-.message-input-wrapper { flex: 1; background-color: #2a3942; border-radius: 8px; padding: 9px 12px; margin: 7px 0; display: flex; align-items: center; }
-.message-input { width: 100%; background: transparent; border: none; outline: none; color: #d1d7db; font-size: 15px; }
+.message-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d1d7db;
+  font-size: 15px;
+  line-height: 20px;
+}
 
-.send-btn { background: none; border: none; padding: 10px; color: #8696a0; cursor: pointer; margin-bottom: 7px; display: flex; align-items: center; justify-content: center; }
-.send-btn:hover { color: #00a884; }
+/* Footer icon buttons */
+.input-icon-btn {
+  background: none;
+  border: none;
+  color: #8696a0;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.18s, color 0.18s;
+}
+
+.input-icon-btn:hover {
+  background-color: #2a3942;
+  color: #e9edef;
+}
+
+.send-btn {
+  background: none;
+  border: none;
+  padding: 10px;
+  color: #8696a0;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.18s, color 0.18s;
+}
+
+.send-btn:hover { background-color: #2a3942; color: #e9edef; }
+
+.send-btn.send-active {
+  background-color: #00a884;
+  color: #111b21;
+}
+
+.send-btn.send-active:hover {
+  background-color: #02b076;
+}
 
 .attachment-menu {
   position: absolute; bottom: 75px; left: 20px; background-color: #233138;

@@ -44,7 +44,8 @@ const Chat = () => {
 
   useEffect(() => {
     if (!user) return;
-    socketRef.current = io("http://localhost:5000");
+    const backendUrl = (process.env.REACT_APP_API_URL || "http://localhost:5000/api").replace("/api", "");
+    socketRef.current = io(backendUrl);
     socketRef.current.emit("user_online", user._id);
     socketRef.current.on("online_users", (onUsers) => setOnlineUsers(onUsers));
     socketRef.current.on("receive_message", (message) => {

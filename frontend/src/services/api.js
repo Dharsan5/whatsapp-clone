@@ -4,7 +4,7 @@ import axios from "axios";
 // Every call like api.get("/users") automatically becomes
 // "http://localhost:5000/api/users"
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
 });
 
 // Interceptor — runs BEFORE every request

@@ -20,9 +20,19 @@ initSocket(server);
 // --- MIDDLEWARE ---
 // cors() — allows frontend (port 3000) to make requests to backend (port 5000)
 // Without this, browser blocks the request (security feature called "Same-Origin Policy")
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   })
 );

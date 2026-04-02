@@ -198,6 +198,56 @@ const ChatWindow = ({ selectedUser, messages, setMessages, socket, onMessageSent
     }
   };
 
+  // ── Location sharing ──────────────────────────────────────────────────────────
+  const handleSendLocation = () => {
+    setShowAttach(false);
+    if (!navigator.geolocation) {
+      showToast("❌ Geolocation is not supported by your browser");
+      return;
+    }
+    showToast("📍 Getting your location…");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const locationPayload = { latitude, longitude, label: "Current Location" };
+        // Optimistic message
+        const tempId = "temp_" + Date.now();
+        const tempMsg = {
+          _id: tempId,
+          sender: { _id: user._id, username: user.username },
+          receiver: { _id: selectedUser._id, username: selectedUser.username },
+          content: "",
+          messageType: "location",
+          location: locationPayload,
+          createdAt: new Date().toISOString(),
+          read: false,
+          _isTemp: true,
+        };
+        setMessages(prev => [...prev, tempMsg]);
+        try {
+          const res = await api.post("/messages", {
+            receiverId: selectedUser._id,
+            messageType: "location",
+            location: JSON.stringify(locationPayload),
+          });
+          setMessages(prev => prev.map(m => m._id === tempId ? res.data : m));
+          socket?.emit("send_message", res.data);
+          onMessageSent?.(res.data);
+        } catch (err) {
+          console.error("Location send failed:", err);
+          setMessages(prev => prev.map(m => m._id === tempId ? { ...m, _failed: true } : m));
+          showToast("❌ Failed to send location");
+        }
+      },
+      (err) => {
+        console.error(err);
+        if (err.code === 1) showToast("❌ Location permission denied");
+        else showToast("❌ Unable to retrieve your location");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const startCall = (type) => {
     setCallState({ type, status: "calling" });
     setTimeout(() => setCallState({ type, status: "ongoing" }), 2000);
@@ -420,8 +470,28 @@ const ChatWindow = ({ selectedUser, messages, setMessages, socket, onMessageSent
                     </a>
                   )}
                   {/* Location */}
-                  {msg.messageType === "location" && (
-                    <div className="message-location"><div className="location-map-preview">📍 Location</div></div>
+                  {msg.messageType === "location" && msg.location && (
+                    <a
+                      className="message-location"
+                      href={`https://www.google.com/maps?q=${msg.location.latitude},${msg.location.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img
+                        className="location-map-preview"
+                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${msg.location.latitude},${msg.location.longitude}&zoom=15&size=300x150&markers=color:red%7C${msg.location.latitude},${msg.location.longitude}&key=YOUR_API_KEY`}
+                        alt="Map"
+                        onError={e => {
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                      <div className="location-map-fallback" style={{ display: "none" }}>
+                        📍 {msg.location.latitude.toFixed(4)}, {msg.location.longitude.toFixed(4)}
+                      </div>
+                      <div className="location-label">📍 {msg.location.label || "Location"}</div>
+                      <div className="location-coords">{msg.location.latitude.toFixed(5)}, {msg.location.longitude.toFixed(5)}</div>
+                    </a>
                   )}
                   {/* Caption / text */}
                   {msg.content && <p className="message-text">{msg.content}</p>}
@@ -520,7 +590,7 @@ const ChatWindow = ({ selectedUser, messages, setMessages, socket, onMessageSent
             },
           ].map(({ label, cls, icon, type }) => (
             <div key={label} className="attachment-item" onClick={() => {
-              if (type === "location") { showToast("📍 Location sharing coming soon"); setShowAttach(false); }
+              if (type === "location") { handleSendLocation(); }
               else handleFileSelect(type);
             }}>
               <div className={`attach-icon-circle ${cls}`}>{icon}</div>

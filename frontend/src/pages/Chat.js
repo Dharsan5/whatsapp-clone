@@ -53,6 +53,21 @@ const Chat = () => {
       setLastMessages((prev) => ({ ...prev, [senderId]: { content: getPreviewText(message), createdAt: message.createdAt } }));
       if (selectedUserRef.current?._id === senderId) setMessages((prev) => [...prev, message]);
     });
+    socketRef.current.on("message_delivered", ({ messageId }) => {
+      setMessages((prev) =>
+        prev.map((m) => m._id === messageId ? { ...m, delivered: true } : m)
+      );
+    });
+    socketRef.current.on("messages_read", ({ from }) => {
+      // from = the user whose messages were read (i.e. our sent messages to selectedUser)
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.sender?._id === user._id && m.receiver?._id === from
+            ? { ...m, read: true, delivered: true }
+            : m
+        )
+      );
+    });
     socketRef.current.on("user_typing", ({ userId }) => setTypingUsers((prev) => prev.includes(userId) ? prev : [...prev, userId]));
     socketRef.current.on("user_stop_typing", ({ userId }) => setTypingUsers((prev) => prev.filter((id) => id !== userId)));
     return () => socketRef.current?.disconnect();
@@ -91,6 +106,13 @@ const Chat = () => {
       try {
         const res = await api.get(`/messages/${selectedUser._id}`);
         setMessages(res.data);
+        // Mark received messages as read
+        if (socketRef.current && user) {
+          socketRef.current.emit("messages_seen", {
+            viewerId: user._id,
+            senderId: selectedUser._id,
+          });
+        }
       } catch (err) { console.error(err); }
     };
     fetchMessages();

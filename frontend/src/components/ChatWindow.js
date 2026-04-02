@@ -19,6 +19,38 @@ const BackIcon      = () => <svg viewBox="0 0 24 24" width="20" height="20" fill
 const ChevronDownIcon = () => <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>;
 const EndCallIcon   = () => <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>;
 
+// ── Message Tick Icons ──────────────────────────────────────────────────────────
+// pending: clock, sent: single check, delivered: double grey, read: double blue
+const TickPending = () => (
+  <svg viewBox="0 0 16 15" width="16" height="15" fill="none" className="msg-tick-svg pending">
+    <circle cx="8" cy="7.5" r="6.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M8 4.5v3.25l2 1.25" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const TickSent = () => (
+  <svg viewBox="0 0 16 15" width="16" height="15" fill="none" className="msg-tick-svg sent-tick">
+    <path d="M3 7.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const TickDelivered = () => (
+  <svg viewBox="0 0 18 15" width="18" height="15" fill="none" className="msg-tick-svg delivered">
+    <path d="M1 7.5l3.5 3.5L11 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5 7.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const TickRead = () => (
+  <svg viewBox="0 0 18 15" width="18" height="15" fill="none" className="msg-tick-svg read">
+    <path d="M1 7.5l3.5 3.5L11 4" stroke="#53bdeb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5 7.5l3.5 3.5 6.5-7" stroke="#53bdeb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const MessageTick = ({ msg }) => {
+  if (msg._isTemp)      return <TickPending />;
+  if (msg.read)         return <TickRead />;
+  if (msg.delivered)    return <TickDelivered />;
+  return <TickSent />;
+};
+
 // Emoji data
 const EMOJI_CATEGORIES = {
   "😊 Smileys": ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","😈","👿"],
@@ -497,11 +529,7 @@ const ChatWindow = ({ selectedUser, messages, setMessages, socket, onMessageSent
                   {msg.content && <p className="message-text">{msg.content}</p>}
                   <div className="message-meta">
                     <span className="message-time">{formatTime(msg.createdAt)}</span>
-                    {isMine && (
-                      <span className={`msg-tick${msg.read ? " read" : ""}${msg._isTemp ? " pending" : ""}`}>
-                        {msg._isTemp ? "🕐" : "✓✓"}
-                      </span>
-                    )}
+                    {isMine && <MessageTick msg={msg} />}
                   </div>
                 </div>
               </div>

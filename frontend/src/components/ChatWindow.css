@@ -216,13 +216,17 @@
 
 .sent .message-time { color: rgba(255,255,255,0.55); }
 
-.msg-tick {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: -2px;
+.msg-tick-svg {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 2px;
+  vertical-align: middle;
 }
-
-.msg-tick.read { color: #53bdeb; }
+.msg-tick-svg.pending   { color: rgba(255,255,255,0.45); }
+.msg-tick-svg.sent-tick { color: rgba(255,255,255,0.6); }
+.msg-tick-svg.delivered { color: rgba(255,255,255,0.6); }
+/* .read colour is baked into the SVG strokes (#53bdeb) */
 
 /* Typing indicator bubble */
 .typing-bubble {
@@ -519,10 +523,7 @@
   animation: pulse 1.5s infinite;
 }
 
-.msg-tick.pending {
-  color: #8696a0;
-  font-size: 11px;
-}
+
 
 .failed-msg .message-bubble {
   border: 1px solid #f15c6d;

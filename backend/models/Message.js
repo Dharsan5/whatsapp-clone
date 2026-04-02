@@ -35,6 +35,14 @@ const messageSchema = new mongoose.Schema(
       longitude: Number,
       label: String,
     },
+    delivered: {
+      type: Boolean,
+      default: false,
+    },
+    read: {
+      type: Boolean,
+      default: false,
+    },
     // For Status Replies
     repliedStatus: {
       mediaUrl: String,

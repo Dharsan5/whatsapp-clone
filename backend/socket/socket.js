@@ -1,10 +1,9 @@
 const { Server } = require("socket.io");
+const Message = require("../models/Message");
 
 let io;
 
 // Map of userId → socketId
-// When user "john" connects, we store: { "john_id_123": "socket_abc" }
-// This lets us send messages directly to a specific user
 const onlineUsers = new Map();
 
 const initSocket = (server) => {
@@ -18,49 +17,58 @@ const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-    // When a user logs in, they emit "user_online" with their userId
-    // We store their socketId so we can send them messages later
+    // User comes online
     socket.on("user_online", (userId) => {
       onlineUsers.set(userId, socket.id);
-      // Broadcast the updated online users list to everyone
       io.emit("online_users", Array.from(onlineUsers.keys()));
     });
 
-    // When a user sends a message from the frontend
-    socket.on("send_message", (message) => {
+    // Sender sends a message — forward to receiver and mark delivered if online
+    socket.on("send_message", async (message) => {
       const receiverSocketId = onlineUsers.get(message.receiver._id);
-
-      // If the receiver is online, send the message directly to them
       if (receiverSocketId) {
-        io.to(receiverSocketId).emit("receive_message", message);
+        // Receiver is online → mark as delivered in DB
+        try {
+          await Message.findByIdAndUpdate(message._id, { delivered: true });
+        } catch (e) { console.error("deliver update error:", e); }
+        const deliveredMsg = { ...message, delivered: true };
+        io.to(receiverSocketId).emit("receive_message", deliveredMsg);
+        // Tell the sender their message was delivered
+        socket.emit("message_delivered", { messageId: message._id });
       }
     });
 
-    // Typing indicators — forward to the receiver
+    // Receiver opens a chat → mark all unread messages from sender as read
+    socket.on("messages_seen", async ({ viewerId, senderId }) => {
+      try {
+        await Message.updateMany(
+          { sender: senderId, receiver: viewerId, read: false },
+          { $set: { read: true, delivered: true } }
+        );
+        // Notify the original sender that their messages are read
+        const senderSocketId = onlineUsers.get(senderId);
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("messages_read", { by: viewerId, from: senderId });
+        }
+      } catch (e) { console.error("seen update error:", e); }
+    });
+
+    // Typing indicators
     socket.on("typing", ({ senderId, receiverId }) => {
       const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("user_typing", { userId: senderId });
-      }
+      if (receiverSocketId) io.to(receiverSocketId).emit("user_typing", { userId: senderId });
     });
 
     socket.on("stop_typing", ({ senderId, receiverId }) => {
       const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("user_stop_typing", { userId: senderId });
-      }
+      if (receiverSocketId) io.to(receiverSocketId).emit("user_stop_typing", { userId: senderId });
     });
 
-    // When a user disconnects (closes browser/tab)
+    // Disconnect
     socket.on("disconnect", () => {
-      // Find and remove the disconnected user from onlineUsers
       for (const [userId, socketId] of onlineUsers.entries()) {
-        if (socketId === socket.id) {
-          onlineUsers.delete(userId);
-          break;
-        }
+        if (socketId === socket.id) { onlineUsers.delete(userId); break; }
       }
-      // Update everyone with new online users list
       io.emit("online_users", Array.from(onlineUsers.keys()));
       console.log("User disconnected:", socket.id);
     });
@@ -70,10 +78,9 @@ const initSocket = (server) => {
 };
 
 const getIO = () => {
-  if (!io) {
-    throw new Error("Socket.IO not initialized");
-  }
+  if (!io) throw new Error("Socket.IO not initialized");
   return io;
 };
 
 module.exports = { initSocket, getIO };
+
